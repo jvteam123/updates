@@ -9,25 +9,18 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        // Set up dark mode based on localStorage or system preference (Defaulting to dark for the requested style)
-        if (localStorage.theme === 'light') {
-            document.documentElement.classList.remove('dark')
-        } else {
-            // Default to dark mode if not explicitly set to light
+        // Set up dark mode based on localStorage or system preference (Prevents FOUC)
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
         }
 
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    // Custom colors for the dark theme look
-                    colors: {
-                        'primary-dark': '#030712',
-                        'card-dark': '#0f172a',
-                        'accent-blue': '#3b82f6',
-                    }
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
                 }
             }
         }
@@ -35,8 +28,10 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .timeline-dot {
-            /* Adjust dot shadow for the deep dark background */
-            box-shadow: 0 0 0 4px #030712; 
+            box-shadow: 0 0 0 4px #f9fafb; 
+        }
+        @media (prefers-color-scheme: dark) {
+            .timeline-dot { box-shadow: 0 0 0 4px #030712; }
         }
         .converter-input {
             appearance: textfield; 
@@ -54,222 +49,192 @@
         .flash-red {
             animation: flash-red 0.5s ease-in-out;
         }
-        /* Custom scrollbar for better look in dark theme */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-thumb {
-            background-color: #334155;
-            border-radius: 4px;
+        .tag-pill.selected {
+            background-color: #2563eb; /* blue-600 */
+            color: white;
+            border-color: #2563eb;
         }
-        ::-webkit-scrollbar-thumb:hover { background-color: #475569; }
-        ::-webkit-scrollbar-track { background: #1f2937; }
+        .dark .tag-pill.selected {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            border-color: #3b82f6;
+        }
     </style>
 </head>
-<body class="bg-primary-dark text-gray-100 min-h-screen transition-colors">
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 min-h-screen transition-colors">
 
-    <!-- Overall layout container with fixed sidebar and flexible content area -->
-    <div id="app" class="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-8">
-        
-        <!-- === LEFT COLUMN: Navigation & Composer (Fixed Width) === -->
-        <div class="md:w-96 w-full flex-shrink-0 order-2 md:order-1">
-            
-            <!-- Header & Nav Bar (Redesigned for Left Column) -->
-            <header class="mb-8 flex items-center justify-between gap-4">
+    <div id="app" class="max-w-2xl mx-auto px-4 py-8">
+        <!-- Header & Nav -->
+        <header class="mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex-grow">
                 <h1 class="text-2xl font-bold tracking-tight">PCS Updates</h1>
-                <div class="flex items-center gap-3">
-                    <button id="dark-mode-toggle" class="p-2 rounded-full text-gray-400 hover:bg-gray-800 transition-colors" title="Toggle Dark/Light Mode">
-                        <i data-lucide="sun" class="w-5 h-5 dark:hidden"></i>
-                        <i data-lucide="moon" class="w-5 h-5 hidden dark:inline"></i>
-                    </button>
-                    <!-- Admin Login Button -->
-                    <button id="login-btn" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-full text-sm transition-colors">Admin Login</button>
-                </div>
-            </header>
+            </div>
             
-            <div class="flex items-center gap-4 mb-6">
-                <div id="user-status" class="h-8 w-8 rounded-full bg-gray-700 animate-pulse" title="Anonymous User"></div>
-                <div id="admin-status" class="text-xs font-medium text-red-400"></div>
-            </div>
-
-            <!-- Navigation Tabs -->
-            <div id="nav-tabs" class="flex border-b border-gray-700 mb-6">
-                <!-- Tab buttons: Functionality attached via JS listener -->
-                <button data-view="timeline" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-accent-blue text-accent-blue">Timeline</button>
-                <button data-view="tools" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-gray-200">Tools</button>
-            </div>
-
-            <!-- Composer Form Card -->
-            <div id="composer-card" class="bg-card-dark rounded-xl shadow-2xl border border-gray-800 mb-6 p-6 transition-all duration-300">
-                <h2 class="text-xl font-semibold mb-4 text-gray-200">What's new?</h2>
-                <textarea id="post-content" placeholder="Type your update here..." 
-                    class="w-full min-h-[100px] resize-none bg-transparent border-0 focus:ring-0 text-lg placeholder-gray-500 mb-4 outline-none"></textarea>
+            <div class="flex items-center gap-4">
+                <button id="dark-mode-toggle" class="p-2 rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" title="Toggle Dark/Light Mode">
+                    <i data-lucide="sun" class="w-5 h-5 dark:hidden"></i>
+                    <i data-lucide="moon" class="w-5 h-5 hidden dark:inline"></i>
+                </button>
+                <div id="admin-status" class="text-xs font-medium text-red-500"></div>
+                <!-- Admin Login Button -->
+                <button id="login-btn" class="px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded-full text-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">Admin Login</button>
                 
-                <div id="meta-input-container" class="space-y-3 mb-6">
-                    <!-- Tag Input -->
-                    <div class="flex items-center gap-3 p-3 rounded-lg border border-gray-700">
-                        <i data-lucide="tag" class="w-4 h-4 text-gray-500"></i>
-                        <input type="text" id="tag-input" placeholder="Optional tag (e.g., Feature, Bug, Announcement)" 
-                            class="flex-1 bg-transparent border-0 focus:outline-none text-sm placeholder-gray-500">
-                    </div>
-                    
-                    <!-- Link/Media Input -->
-                    <div id="link-input-container" class="flex items-center gap-3 p-3 rounded-lg border border-gray-700">
-                        <i data-lucide="image" class="w-4 h-4 text-gray-500"></i>
-                        <input type="url" id="link-url" placeholder="Optional Image/Link URL" 
-                            class="flex-1 bg-transparent border-0 focus:outline-none text-sm placeholder-gray-500">
-                        <button id="clear-link-btn" class="text-gray-400 hover:text-gray-200">&times;</button>
+                <!-- Updated User Status UI -->
+                <div id="user-status" class="h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400" title="Anonymous User">
+                     <i data-lucide="user" class="w-5 h-5"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div id="nav-tabs" class="flex border-b border-gray-200 dark:border-gray-800 mb-6">
+            <button data-view="timeline" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400">Timeline</button>
+            <button data-view="tools" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Tools</button>
+        </div>
+
+        <!-- Admin Login Modal/Popup -->
+        <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl w-full max-w-sm">
+                <h2 class="text-xl font-bold mb-4">Admin Login</h2>
+                <input id="admin-user" type="text" placeholder="Username (admin)" class="w-full p-2 mb-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="admin">
+                <input id="admin-pass" type="password" placeholder="Password (admin)" class="w-full p-2 mb-4 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="admin">
+                <div class="flex justify-end gap-3">
+                    <button id="close-modal-btn" class="px-4 py-2 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
+                    <button id="submit-login-btn" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Login</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Container -->
+        <div id="error-container" class="hidden fixed top-4 right-4 z-50 max-w-sm bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-200 p-4 rounded-lg border border-red-200 dark:border-red-800 text-sm flex items-start gap-3 shadow-lg">
+            <i data-lucide="alert-triangle" class="w-5 h-5 mt-0.5"></i>
+            <span id="error-message"></span>
+            <button onclick="document.getElementById('error-container').classList.add('hidden')" class="ml-auto text-red-500 hover:text-red-700">&times;</button>
+        </div>
+
+        <!-- Timeline View -->
+        <div id="timeline-view" class="view">
+            <!-- Composer Form -->
+            <div id="composer-card" class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 mb-6 p-4 transition-all duration-300">
+                
+                <!-- Title Input (New) -->
+                <input id="post-title" type="text" placeholder="Post Title (Optional)" 
+                    class="w-full bg-transparent border-0 border-b border-gray-100 dark:border-gray-800 focus:ring-0 text-xl font-bold placeholder-gray-400 mb-3 pb-2 outline-none">
+
+                <textarea id="post-content" placeholder="What's new?" 
+                    class="w-full min-h-[100px] resize-none bg-transparent border-0 focus:ring-0 text-base placeholder-gray-400 mb-2 outline-none"></textarea>
+                
+                <!-- Tag Selection (New Selectable UI) -->
+                <div class="mb-4">
+                    <span class="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold mb-2 block">Select Tag</span>
+                    <div id="tag-selector" class="flex flex-wrap gap-2">
+                        <button type="button" class="tag-pill px-3 py-1 rounded-full text-xs font-medium border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" data-tag="General">General</button>
+                        <button type="button" class="tag-pill px-3 py-1 rounded-full text-xs font-medium border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" data-tag="Feature">Feature</button>
+                        <button type="button" class="tag-pill px-3 py-1 rounded-full text-xs font-medium border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" data-tag="Bug">Bug</button>
+                        <button type="button" class="tag-pill px-3 py-1 rounded-full text-xs font-medium border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" data-tag="Announcement">Announcement</button>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-end pt-4 border-t border-gray-800">
-                    <button id="submit-btn" class="flex items-center justify-center px-6 py-2 bg-accent-blue hover:bg-blue-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                <div id="meta-input-container" class="space-y-2 mb-4">
+                    <!-- Link/Media Input -->
+                    <div id="link-input-container" class="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-md">
+                        <i data-lucide="image" class="w-4 h-4 text-gray-400"></i>
+                        <input type="url" id="link-url" placeholder="Optional Image/Link URL (e.g., https://...)" 
+                            class="flex-1 bg-transparent border-0 focus:outline-none text-sm">
+                        <button id="clear-link-btn" class="text-gray-400 hover:text-gray-600">&times;</button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
+                    <button id="submit-btn" class="flex items-center justify-center px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         <span class="mr-2">Waiting for Auth...</span>
                         <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
                     </button>
                 </div>
             </div>
+
+            <!-- Search Bar -->
+            <div class="mb-6">
+                <div class="relative">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                    <input type="text" id="search-input" placeholder="Search timeline..." 
+                        class="w-full p-3 pl-10 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+
+            <!-- Timeline Feed -->
+            <div id="posts-feed" class="space-y-6 relative">
+                <div class="text-center py-12 text-gray-400">Loading updates...</div>
+            </div>
         </div>
 
-        <!-- === RIGHT COLUMN: Content Area (Flexible Width) === -->
-        <div class="flex-1 order-1 md:order-2">
+        <!-- Tools View -->
+        <div id="tools-view" class="view hidden">
+            <h2 class="text-xl font-bold mb-4">Utility Tools</h2>
             
-            <!-- Search Bar (Now wide at the top of the content area) -->
-            <div class="mb-8">
-                <div class="relative">
-                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"></i>
-                    <input type="text" id="search-input" placeholder="Search timeline updates..." 
-                        class="w-full p-3 pl-10 border border-gray-700 rounded-xl bg-card-dark focus:ring-2 focus:ring-accent-blue focus:border-accent-blue">
+            <!-- Time Decimal Converter -->
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 mb-6">
+                <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <i data-lucide="clock" class="w-5 h-5 text-blue-500"></i>
+                    Time Decimal Converter
+                </h3>
+                <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                    <div class="flex-1">
+                        <label for="hours-input" class="block text-xs font-medium text-gray-500 mb-1">Hours (0-23)</label>
+                        <input type="number" id="hours-input" min="0" max="23" placeholder="HH" value="8"
+                            class="converter-input w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-center text-lg">
+                    </div>
+                    <div class="flex-1">
+                        <label for="minutes-input" class="block text-xs font-medium text-gray-500 mb-1">Minutes (0-59)</label>
+                        <input type="number" id="minutes-input" min="0" max="59" placeholder="MM" value="30"
+                            class="converter-input w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-center text-lg">
+                    </div>
+                </div>
+                <div class="text-center mt-6 p-4 border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <p class="text-sm text-blue-600 dark:text-blue-300">Decimal Time Result:</p>
+                    <p id="decimal-result" class="text-3xl font-bold text-blue-800 dark:text-blue-200 mt-1">8.5</p>
                 </div>
             </div>
-
-            <!-- Timeline View -->
-            <div id="timeline-view" class="view">
-                <!-- Timeline Feed -->
-                <div id="posts-feed" class="space-y-8 relative">
-                    <div class="text-center py-12 text-gray-500">Loading updates...</div>
-                </div>
-            </div>
-
-            <!-- Tools View -->
-            <div id="tools-view" class="view hidden">
-                <h2 class="text-xl font-bold mb-4">Utility Tools</h2>
-                
-                <!-- Time Decimal Converter -->
-                <div class="bg-card-dark rounded-xl shadow-md border border-gray-800 p-6 mb-6">
-                    <h3 class="text-lg font-semibold mb-3 flex items-center gap-2 text-gray-200">
-                        <i data-lucide="clock" class="w-5 h-5 text-blue-400"></i>
-                        Time Decimal Converter
-                    </h3>
-                    <p class="text-sm text-gray-400 mb-4">Convert time (HH:MM) to decimal hours (e.g., 8:30 becomes 8.5).</p>
-                    
-                    <div class="flex flex-col sm:flex-row gap-4 mb-4">
-                        <div class="flex-1">
-                            <label for="hours-input" class="block text-xs font-medium text-gray-500 mb-1">Hours (0-23)</label>
-                            <input type="number" id="hours-input" min="0" max="23" placeholder="HH" value="8"
-                                class="converter-input w-full p-2 border rounded-lg bg-gray-800 border-gray-700 text-center text-lg focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div class="flex-1">
-                            <label for="minutes-input" class="block text-xs font-medium text-gray-500 mb-1">Minutes (0-59)</label>
-                            <input type="number" id="minutes-input" min="0" max="59" placeholder="MM" value="30"
-                                class="converter-input w-full p-2 border rounded-lg bg-gray-800 border-gray-700 text-center text-lg focus:ring-blue-500 focus:border-blue-500">
-                        </div>
+            
+            <!-- Percentage Calculator -->
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 mb-6">
+                <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <i data-lucide="percent" class="w-5 h-5 text-green-500"></i>
+                    Percentage Calculator
+                </h3>
+                <div class="flex flex-col sm:flex-row gap-4 mb-4 items-center">
+                    <div class="flex-1">
+                        <label for="percent-x" class="block text-xs font-medium text-gray-500 mb-1">X (%)</label>
+                        <input type="number" id="percent-x" placeholder="15" value="15"
+                            class="converter-input w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-center text-lg">
                     </div>
-
-                    <div class="text-center mt-6 p-4 border border-blue-800 bg-blue-900/30 rounded-lg">
-                        <p class="text-sm text-blue-400">Decimal Time Result:</p>
-                        <p id="decimal-result" class="text-3xl font-bold text-blue-300 mt-1">8.5</p>
+                    <span class="text-xl font-bold pt-4 text-gray-500">% of</span>
+                    <div class="flex-1">
+                        <label for="percent-y" class="block text-xs font-medium text-gray-500 mb-1">Y (Total)</label>
+                        <input type="number" id="percent-y" placeholder="200" value="200"
+                            class="converter-input w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-center text-lg">
                     </div>
                 </div>
-                
-                <!-- Percentage Calculator -->
-                <div class="bg-card-dark rounded-xl shadow-md border border-gray-800 p-6 mb-6">
-                    <h3 class="text-lg font-semibold mb-3 flex items-center gap-2 text-gray-200">
-                        <i data-lucide="percent" class="w-5 h-5 text-green-400"></i>
-                        Percentage Calculator
-                    </h3>
-                    <p class="text-sm text-gray-400 mb-4">What is (<span class="font-bold text-green-400">X</span>) % of (<span class="font-bold text-green-400">Y</span>)?</p>
-
-                    <div class="flex flex-col sm:flex-row gap-4 mb-4 items-center">
-                        <div class="flex-1">
-                            <label for="percent-x" class="block text-xs font-medium text-gray-500 mb-1">X (%)</label>
-                            <input type="number" id="percent-x" placeholder="15" value="15"
-                                class="converter-input w-full p-2 border rounded-lg bg-gray-800 border-gray-700 text-center text-lg focus:ring-green-500 focus:border-green-500">
-                        </div>
-                        <span class="text-xl font-bold pt-4 text-gray-500">% of</span>
-                        <div class="flex-1">
-                            <label for="percent-y" class="block text-xs font-medium text-gray-500 mb-1">Y (Total)</label>
-                            <input type="number" id="percent-y" placeholder="200" value="200"
-                                class="converter-input w-full p-2 border rounded-lg bg-gray-800 border-gray-700 text-center text-lg focus:ring-green-500 focus:border-green-500">
-                        </div>
-                    </div>
-
-                    <div class="text-center mt-6 p-4 border border-green-800 bg-green-900/30 rounded-lg">
-                        <p class="text-sm text-green-400">Calculation Result:</p>
-                        <p id="percentage-result" class="text-3xl font-bold text-green-300 mt-1">30</p>
-                    </div>
-                </div>
-
-                <!-- Simple Unit Converter (C to F) -->
-                <div class="bg-card-dark rounded-xl shadow-md border border-gray-800 p-6 mb-6">
-                    <h3 class="text-lg font-semibold mb-3 flex items-center gap-2 text-gray-200">
-                        <i data-lucide="thermometer" class="w-5 h-5 text-yellow-400"></i>
-                        Temperature Converter (C $\leftrightarrow$ F)
-                    </h3>
-                    <p class="text-sm text-gray-400 mb-4">Convert between Celsius and Fahrenheit.</p>
-
-                    <div class="flex flex-col sm:flex-row gap-4 mb-4 items-center">
-                        <div class="flex-1">
-                            <label for="celsius-input" class="block text-xs font-medium text-gray-500 mb-1">Celsius ($\degree\text{C}$)</label>
-                            <input type="number" id="celsius-input" placeholder="0" value="0"
-                                class="converter-input w-full p-2 border rounded-lg bg-gray-800 border-gray-700 text-center text-lg focus:ring-yellow-500 focus:border-yellow-500">
-                        </div>
-                        <i data-lucide="arrow-right-left" class="w-5 h-5 text-gray-500 pt-4"></i>
-                        <div class="flex-1">
-                            <label for="fahrenheit-input" class="block text-xs font-medium text-gray-500 mb-1">Fahrenheit ($\degree\text{F}$)</label>
-                            <input type="number" id="fahrenheit-input" placeholder="32" value="32"
-                                class="converter-input w-full p-2 border rounded-lg bg-gray-800 border-gray-700 text-center text-lg focus:ring-yellow-500 focus:border-yellow-500">
-                        </div>
-                    </div>
+                <div class="text-center mt-6 p-4 border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <p class="text-sm text-green-600 dark:text-green-300">Result:</p>
+                    <p id="percentage-result" class="text-3xl font-bold text-green-800 dark:text-green-200 mt-1">30</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Scroll to Top Button -->
-    <button id="scroll-to-top" class="fixed bottom-4 right-4 p-3 bg-accent-blue text-white rounded-full shadow-lg hover:bg-blue-600 transition-opacity duration-300 opacity-0 pointer-events-none z-40">
+    <button id="scroll-to-top" class="fixed bottom-4 right-4 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-opacity duration-300 opacity-0 pointer-events-none z-40">
         <i data-lucide="arrow-up" class="w-5 h-5"></i>
     </button>
-    
-    <!-- Admin Login Modal/Popup -->
-    <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-        <div class="bg-card-dark p-6 rounded-xl shadow-2xl w-full max-w-sm border border-gray-700">
-            <h2 class="text-xl font-bold mb-4">Admin Login</h2>
-            <input id="admin-user" type="text" placeholder="Username (admin)" class="w-full p-3 mb-3 border rounded-lg bg-gray-800 border-gray-700 text-gray-200" value="admin">
-            <input id="admin-pass" type="password" placeholder="Password (admin)" class="w-full p-3 mb-4 border rounded-lg bg-gray-800 border-gray-700 text-gray-200" value="admin">
-            <div class="flex justify-end gap-3">
-                <button id="close-modal-btn" class="px-4 py-2 text-sm rounded-lg text-gray-400 hover:bg-gray-800">Cancel</button>
-                <button id="submit-login-btn" class="px-4 py-2 text-sm bg-accent-blue text-white rounded-lg hover:bg-blue-600">Login</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Error Container -->
-    <div id="error-container" class="hidden fixed top-4 right-4 z-50 max-w-sm bg-red-900/20 text-red-200 p-4 rounded-lg border border-red-800 text-sm flex items-start gap-3 shadow-lg">
-        <i data-lucide="alert-triangle" class="w-5 h-5 mt-0.5 text-red-400"></i>
-        <span id="error-message"></span>
-        <button onclick="document.getElementById('error-container').classList.add('hidden')" class="ml-auto text-red-400 hover:text-red-200">&times;</button>
-    </div>
-
 
     <!-- Firebase Logic -->
     <script type="module">
-        // Updated imports for Firebase v12.x
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js';
         import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
-        // Need updateDoc for reactions
         import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
 
         // --- CONFIGURATION START ---
-        // Placeholder config since __firebase_config is not available here
         const firebaseConfig = {
             apiKey: "AIzaSyBBcrvThge1YHswamX_pb7KghiCm5ROUH8",
             authDomain: "pcs-updates.firebaseapp.com",
@@ -278,7 +243,7 @@
             messagingSenderId: "424424316130",
             appId: "1:424424316130:web:84f63aab43b4687b08d2bb"
         };
-        // NOTE: In the actual canvas environment, the following block would be used:
+        // Use environment config if available
         // const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         // --- CONFIGURATION END ---
 
@@ -291,19 +256,22 @@
         // --- STATE MANAGEMENT ---
         let currentUser = null;
         let isAdmin = false;
-        let posts = []; // All posts from Firestore
-        let filteredPosts = []; // Posts currently displayed (after search/filter)
+        let posts = [];
+        let filteredPosts = [];
         let editingPostId = null;
         let currentView = 'timeline';
+        let selectedTag = 'General'; // Default tag
 
         // --- DOM ELEMENTS ---
         const userStatus = document.getElementById('user-status');
         const feedContainer = document.getElementById('posts-feed');
         const submitBtn = document.getElementById('submit-btn');
         const composerCard = document.getElementById('composer-card');
+        const titleInput = document.getElementById('post-title');
         const contentInput = document.getElementById('post-content');
         const linkInput = document.getElementById('link-url');
-        const tagInput = document.getElementById('tag-input');
+        const tagSelector = document.getElementById('tag-selector');
+        const tagPills = document.querySelectorAll('.tag-pill');
         const clearLinkBtn = document.getElementById('clear-link-btn');
         const searchInput = document.getElementById('search-input');
         const darkModeToggle = document.getElementById('dark-mode-toggle');
@@ -332,45 +300,36 @@
         const percentX = document.getElementById('percent-x');
         const percentY = document.getElementById('percent-y');
         const percentageResult = document.getElementById('percentage-result');
-        const celsiusInput = document.getElementById('celsius-input');
-        const fahrenheitInput = document.getElementById('fahrenheit-input');
 
 
         // --- AUTH & INITIALIZATION ---
 
         signInAnonymously(auth).catch((e) => {
-             console.error("Anonymous Sign-in Failed. Ensure Anonymous Auth is enabled in your Firebase Console.", e);
-             handleError("Authentication failed. Did you enable Anonymous Auth?");
+             console.error("Auth failed", e);
+             handleError("Authentication failed.");
         });
         
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                // User status indicator color
-                userStatus.className = "h-8 w-8 rounded-full bg-gradient-to-tr from-accent-blue to-purple-500";
-                userStatus.title = `User ID: ${user.uid}`;
+                // Updated User UI in Header
+                userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-800";
+                userStatus.innerHTML = '<i data-lucide="user-check" class="w-5 h-5"></i>';
+                userStatus.title = `Connected as Member`;
                 
-                // Enable Post button and update text
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<span class="mr-2">Post</span><i data-lucide="send" class="w-4 h-4"></i>';
 
                 initRealtimeListener();
             } else {
                 currentUser = null;
-                userStatus.className = "h-8 w-8 rounded-full bg-gray-700 animate-pulse";
-                userStatus.title = "Anonymous User (Auth Pending/Failed)";
+                userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800 text-gray-400 animate-pulse";
+                userStatus.innerHTML = '<i data-lucide="user" class="w-5 h-5"></i>';
                 
-                // Disable Post button and show loading state
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<span class="mr-2">Waiting for Auth...</span><i data-lucide="loader" class="w-4 h-4 animate-spin"></i>';
-
-                feedContainer.innerHTML = `
-                    <div class="text-center py-12 text-gray-500">
-                        <i data-lucide="alert-triangle" class="w-8 h-8 mx-auto mb-4 text-red-500"></i>
-                        <p class="text-red-400">Waiting for Authentication...</p>
-                    </div>`;
-                lucide.createIcons();
             }
+            lucide.createIcons();
             updateAdminUI();
         });
 
@@ -378,62 +337,70 @@
 
         function switchView(viewName) {
             currentView = viewName;
-            
             [timelineView, toolsView].forEach(view => {
                 view.classList.toggle('hidden', view.id !== `${viewName}-view`);
             });
-
             navTabs.forEach(tab => {
                 const isActive = tab.dataset.view === viewName;
-                tab.classList.toggle('border-accent-blue', isActive);
-                tab.classList.toggle('text-accent-blue', isActive);
+                tab.classList.toggle('border-blue-600', isActive);
+                tab.classList.toggle('text-blue-600', isActive);
+                tab.classList.toggle('dark:text-blue-400', isActive);
                 tab.classList.toggle('border-transparent', !isActive);
-                tab.classList.toggle('text-gray-400', !isActive);
+                tab.classList.toggle('text-gray-500', !isActive);
             });
             lucide.createIcons();
-            // Re-run tool calculations when switching to tools view
-            if (viewName === 'tools') {
-                calculateDecimalTime();
-                calculatePercentage();
-                convertTemperature(celsiusInput, 'C');
-            }
         }
 
         navTabs.forEach(tab => {
             tab.addEventListener('click', () => switchView(tab.dataset.view));
         });
 
+        // --- TAG SELECTION LOGIC ---
+        
+        // Initialize Default Selection
+        updateTagSelection(selectedTag);
+
+        tagPills.forEach(btn => {
+            btn.addEventListener('click', () => {
+                selectedTag = btn.dataset.tag;
+                updateTagSelection(selectedTag);
+            });
+        });
+
+        function updateTagSelection(tag) {
+            tagPills.forEach(btn => {
+                if (btn.dataset.tag === tag) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+        }
+
         // --- ADMIN LOGIN LOGIC ---
 
         function updateAdminUI() {
             if (isAdmin) {
-                adminStatus.textContent = 'ADMIN MODE';
-                adminStatus.classList.remove('text-red-400');
-                adminStatus.classList.add('text-green-400', 'font-bold');
+                adminStatus.textContent = 'ADMIN';
+                adminStatus.classList.remove('text-red-500');
+                adminStatus.classList.add('text-green-500', 'font-bold');
                 loginBtn.textContent = 'Logout';
-                // Use addEventListener for logout
                 loginBtn.onclick = handleLogout;
             } else {
                 adminStatus.textContent = '';
-                adminStatus.classList.remove('text-green-400', 'font-bold');
-                adminStatus.classList.add('text-red-400');
                 loginBtn.textContent = 'Admin Login';
-                // Use addEventListener for login modal open
                 loginBtn.onclick = () => loginModal.classList.remove('hidden'); 
             }
-            applySearchFilter(); // Re-render to show/hide edit/delete buttons
+            applySearchFilter();
         }
         
         function handleLogin() {
-            const user = adminUser.value;
-            const pass = adminPass.value;
-
-            if (user === 'admin' && pass === 'admin') {
+            if (adminUser.value === 'admin' && adminPass.value === 'admin') {
                 isAdmin = true;
                 loginModal.classList.add('hidden');
                 updateAdminUI();
             } else {
-                handleError("Invalid credentials. Try admin/admin.");
+                handleError("Invalid credentials.");
             }
         }
 
@@ -444,15 +411,6 @@
             updateAdminUI();
         }
 
-        loginBtn.addEventListener('click', (e) => {
-             // Listener handles both Login (showing modal) and Logout (handleLogout)
-             if (!isAdmin) {
-                loginModal.classList.remove('hidden');
-             } else {
-                handleLogout();
-             }
-        });
-
         submitLoginBtn.addEventListener('click', handleLogin);
         closeModalBtn.addEventListener('click', () => loginModal.classList.add('hidden'));
 
@@ -461,33 +419,18 @@
         function initRealtimeListener() {
             if (!currentUser) return;
             
-            // Define the collection path using the provided structure. 
-            // Since this is public data for the app timeline, we'll use the public path, 
-            // but for simplicity in this single file, we use a root collection 'posts'.
-            // In a real environment, you might use: 
-            // const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-            // const collectionPath = `/artifacts/${appId}/public/data/${COLLECTION_NAME}`;
-
-            console.log(`Firestore Collection Path Used: ${COLLECTION_NAME}`);
-            console.warn(`NOTE: In a live Canvas environment, the path would typically be: /artifacts/{app_id}/public/data/${COLLECTION_NAME}`);
-
+            // Using the root collection 'posts' for this artifact
             onSnapshot(collection(db, COLLECTION_NAME), (snapshot) => {
                 posts = snapshot.docs.map(doc => ({ 
                     id: doc.id, 
                     ...doc.data(),
-                    // Ensure reactions is an object for safe access
                     reactions: doc.data().reactions || {} 
                 }));
-                
-                // Sort by createdAt desc
                 posts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-                
                 applySearchFilter();
             }, (error) => {
                 console.error(error);
-                if(error.code === 'permission-denied') {
-                   handleError("Permission denied. Check Firestore Rules (should allow anonymous write/read).");
-                }
+                if(error.code === 'permission-denied') handleError("Permission denied.");
             });
         }
 
@@ -501,14 +444,13 @@
                 filteredPosts = posts;
             } else {
                 filteredPosts = posts.filter(post => 
+                    (post.title && post.title.toLowerCase().includes(query)) ||
                     post.content.toLowerCase().includes(query) || 
-                    (post.link && post.link.toLowerCase().includes(query)) ||
                     (post.tag && post.tag.toLowerCase().includes(query))
                 );
             }
             renderPosts(filteredPosts);
         }
-
 
         // --- RENDERING & CRUD ---
 
@@ -518,9 +460,9 @@
 
         function renderPosts(currentPosts) {
             if (currentPosts.length === 0) {
-                const message = searchInput.value.trim() ? "No results found for your search." : "No updates yet.";
+                const message = searchInput.value.trim() ? "No results found." : "No updates yet.";
                 feedContainer.innerHTML = `
-                    <div class="text-center py-12 text-gray-500">
+                    <div class="text-center py-12 text-gray-400">
                         <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-4 opacity-50"></i>
                         <p>${message}</p>
                     </div>`;
@@ -536,29 +478,43 @@
                 const reactionCount = Object.keys(postReactions).length;
                 const hasReacted = currentUserId !== 'temp-anon-user' && postReactions[currentUserId];
                 
+                // Determine Tag Style
+                let tagColorClass = "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
+                if (post.tag === 'Feature') tagColorClass = "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+                if (post.tag === 'Bug') tagColorClass = "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+                if (post.tag === 'Announcement') tagColorClass = "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400";
+
                 // Post Content (Edit Mode vs. View Mode)
                 const postContentHtml = isCurrentEditing
                     ? `
-                        <textarea id="edit-content-${post.id}" class="w-full h-32 p-3 border rounded-lg bg-gray-800 border-gray-700">${escapeHtml(post.content || '')}</textarea>
-                        <input type="text" id="edit-tag-${post.id}" class="w-full p-2 mt-2 border rounded-lg bg-gray-800 border-gray-700" value="${escapeHtml(post.tag || '')}" placeholder="Tag">
-                        <input type="url" id="edit-link-${post.id}" class="w-full p-2 mt-2 border rounded-lg bg-gray-800 border-gray-700" value="${escapeHtml(post.link || '')}" placeholder="Link/Image URL">
+                        <input type="text" id="edit-title-${post.id}" class="w-full p-2 mb-2 font-bold text-lg border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="${escapeHtml(post.title || '')}" placeholder="Title">
+                        <textarea id="edit-content-${post.id}" class="w-full h-32 p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">${escapeHtml(post.content || '')}</textarea>
+                        <!-- Simple select for edit mode for simplicity -->
+                        <select id="edit-tag-${post.id}" class="w-full p-2 mt-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                            <option value="General" ${post.tag === 'General' ? 'selected' : ''}>General</option>
+                            <option value="Feature" ${post.tag === 'Feature' ? 'selected' : ''}>Feature</option>
+                            <option value="Bug" ${post.tag === 'Bug' ? 'selected' : ''}>Bug</option>
+                            <option value="Announcement" ${post.tag === 'Announcement' ? 'selected' : ''}>Announcement</option>
+                        </select>
+                        <input type="url" id="edit-link-${post.id}" class="w-full p-2 mt-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="${escapeHtml(post.link || '')}" placeholder="Link/Image URL">
                       `
                     : `
-                        <p class="whitespace-pre-wrap text-base leading-relaxed text-gray-200">${escapeHtml(post.content)}</p>
+                        ${post.title ? `<h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">${escapeHtml(post.title)}</h3>` : ''}
+                        <p class="whitespace-pre-wrap text-base leading-relaxed text-gray-800 dark:text-gray-200">${escapeHtml(post.content)}</p>
                         ${post.link ? renderMedia(post.link) : ''}
                       `;
 
-                // Admin Buttons - Using data-attributes for event delegation
+                // Admin Buttons
                 const adminButtons = isAdmin ? `
                     <div class="flex gap-2">
                         <button data-action="${isCurrentEditing ? 'save-edit' : 'edit-post'}" 
                             data-post-id="${post.id}"
-                            class="p-1 text-xs font-medium rounded-md ${isCurrentEditing ? 'bg-green-600 text-white hover:bg-green-700' : 'text-accent-blue hover:bg-gray-800'}">
+                            class="p-1 text-xs font-medium rounded-md ${isCurrentEditing ? 'bg-green-600 text-white hover:bg-green-700' : 'text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'}">
                             <i data-lucide="${isCurrentEditing ? 'save' : 'edit'}" class="w-3 h-3 mr-1 inline"></i>
                             ${isCurrentEditing ? 'Save' : 'Edit'}
                         </button>
                         ${!isCurrentEditing ? `
-                            <button data-action="delete-post" data-post-id="${post.id}" class="p-1 text-xs font-medium rounded-md text-red-400 hover:bg-gray-800">
+                            <button data-action="delete-post" data-post-id="${post.id}" class="p-1 text-xs font-medium rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
                                 <i data-lucide="trash-2" class="w-3 h-3 mr-1 inline"></i>
                                 Delete
                             </button>
@@ -566,42 +522,40 @@
                     </div>
                 ` : '';
 
-                // Reaction Button - Using data-attributes for event delegation
                 const reactionButton = `
                     <button data-action="toggle-reaction" 
                             data-post-id="${post.id}" 
                             data-reacted="${hasReacted}"
-                            class="flex items-center gap-1.5 p-1 px-2 text-sm rounded-full transition-colors ${hasReacted ? 'bg-red-500 text-white hover:bg-red-600' : 'text-gray-400 hover:bg-gray-800'}">
+                            class="flex items-center gap-1.5 p-1 px-2 text-sm rounded-full transition-colors ${hasReacted ? 'bg-red-500 text-white hover:bg-red-600' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'}">
                         <i data-lucide="heart" class="w-4 h-4 fill-current ${hasReacted ? '' : 'fill-none'}"></i>
                         <span class="font-medium">${reactionCount}</span>
                     </button>
                 `;
 
-                const displayedAuthorId = post.authorId ? escapeHtml(post.authorId).substring(0, 8) + '...' : 'Anonymous';
-
                 return `
-                    <div class="group relative pl-8 pb-8 last:pb-0 border-l-2 border-gray-700">
-                        <!-- Timeline Dot: Adjusted for deep dark background -->
-                        <div class="timeline-dot absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-accent-blue border-4 border-primary-dark"></div>
+                    <div class="group relative pl-8 pb-8 last:pb-0 border-l-2 border-gray-200 dark:border-gray-800">
+                        <div class="timeline-dot absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-blue-500 border-4 border-gray-50 dark:border-gray-950"></div>
                         
                         <div class="flex flex-col gap-2">
                             <!-- Header Bar -->
-                            <div class="flex items-center justify-between text-xs text-gray-500">
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
                                 <div class="flex items-center gap-2">
-                                    <span class="font-mono text-xs text-gray-400" title="Author UID: ${escapeHtml(post.authorId || 'N/A')}">
-                                        ${displayedAuthorId}
-                                    </span>
+                                    <!-- Replaced UID with generic User Icon/Label -->
+                                    <div class="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
+                                        <i data-lucide="user" class="w-3 h-3 text-gray-400"></i>
+                                        <span class="font-medium text-gray-600 dark:text-gray-400">Member</span>
+                                    </div>
+
                                     <span class="text-xs text-gray-500">
                                         &bull; ${formatRelativeTime(post.createdAt)}
                                     </span>
-                                    ${post.tag ? `<span class="px-2 py-0.5 bg-yellow-900/40 text-yellow-400 rounded-full text-[10px] font-semibold uppercase">${escapeHtml(post.tag)}</span>` : ''}
+                                    ${post.tag ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${tagColorClass}">${escapeHtml(post.tag)}</span>` : ''}
                                 </div>
                                 ${adminButtons}
                             </div>
 
                             ${postContentHtml}
                             
-                            <!-- Footer Bar -->
                             <div class="flex justify-end pt-2">
                                 ${reactionButton}
                             </div>
@@ -617,20 +571,20 @@
             const safeUrl = escapeHtml(url);
             if (isImageUrl(url)) {
                 return `
-                    <div class="mt-4 overflow-hidden rounded-xl border border-gray-700 max-w-full">
+                    <div class="mt-4 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 max-w-full">
                         <img src="${safeUrl}" alt="Post image" class="w-full h-auto object-cover max-h-96" 
-                             onerror="this.onerror=null; this.src='https://placehold.co/400x200/1f2937/9ca3af?text=Image+Load+Failed'; this.alt='Image not found';">
+                             onerror="this.onerror=null; this.src='https://placehold.co/400x200/94a3b8/ffffff?text=Image+Load+Failed';">
                     </div>
                 `;
             } else {
                 return `
                     <a href="${safeUrl}" target="_blank" rel="noopener noreferrer"
-                       class="flex items-center gap-3 p-3 mt-4 rounded-xl border border-gray-700 bg-gray-800 hover:bg-gray-700 transition-colors w-full max-w-sm">
-                        <div class="h-8 w-8 flex items-center justify-center rounded-lg bg-blue-900/50 text-blue-400 shrink-0">
+                       class="flex items-center gap-3 p-3 mt-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors w-full max-w-sm">
+                        <div class="h-8 w-8 flex items-center justify-center rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shrink-0">
                             <i data-lucide="external-link" class="w-4 h-4"></i>
                         </div>
                         <div class="overflow-hidden">
-                            <p class="text-sm font-medium text-blue-400 truncate">${safeUrl}</p>
+                            <p class="text-sm font-medium text-blue-600 dark:text-blue-400 truncate">${safeUrl}</p>
                             <p class="text-xs text-gray-500">External Link</p>
                         </div>
                     </a>
@@ -638,18 +592,18 @@
             }
         }
 
-        // --- EVENT DELEGATION FOR TIMELINE ACTIONS (NEW ROBUST FIX) ---
+        // --- EVENTS ---
         feedContainer.addEventListener('click', (e) => {
             const target = e.target.closest('[data-action]');
             if (!target) return;
 
             const action = target.dataset.action;
             const postId = target.dataset.postId;
-            const hasReacted = target.dataset.reacted === 'true'; // Get boolean from data-attribute
+            const hasReacted = target.dataset.reacted === 'true';
             const currentUserId = currentUser ? currentUser.uid : null;
 
             if (!currentUserId) {
-                 handleError("Cannot perform action. User authentication is required or pending.");
+                 handleError("Authentication required.");
                  return;
             }
 
@@ -658,10 +612,10 @@
                     toggleReaction(postId, currentUserId, hasReacted);
                     break;
                 case 'edit-post':
-                    toggleEdit(postId, false); // false = not currently editing (start edit)
+                    toggleEdit(postId, false);
                     break;
                 case 'save-edit':
-                    toggleEdit(postId, true); // true = currently editing (save edit)
+                    toggleEdit(postId, true);
                     break;
                 case 'delete-post':
                     deletePost(postId);
@@ -669,45 +623,41 @@
             }
         });
 
-
-        // Add New Post
         submitBtn.addEventListener('click', async () => {
+            const title = titleInput.value.trim(); // New Title
             const content = contentInput.value.trim();
             const link = linkInput.value.trim();
-            const tag = tagInput.value.trim();
+            const tag = selectedTag; // Use the selected variable
 
-            if (!currentUser || !currentUser.uid) {
-                handleError("Post failed: Not authenticated. Waiting for anonymous sign-in to complete.");
-                return;
-            }
+            if (!currentUser) return handleError("Not authenticated.");
 
-            if (!content && !link) {
-                // If both are empty, provide visual feedback
+            if (!content && !link && !title) {
                 composerCard.classList.add('flash-red');
                 setTimeout(() => composerCard.classList.remove('flash-red'), 500);
-                handleError("Please enter content or a link before posting.");
-                return;
+                return handleError("Please enter a title, content, or link.");
             }
 
             submitBtn.disabled = true;
             submitBtn.innerHTML = 'Posting...';
-            lucide.createIcons();
 
             try {
-                // Using the root collection 'posts' for simplicity in this artifact
                 await addDoc(collection(db, COLLECTION_NAME), {
+                    title, // Save Title
                     content,
                     link,
                     tag,
                     authorId: currentUser.uid,
                     createdAt: serverTimestamp(),
-                    reactions: {} // Initialize reactions field
+                    reactions: {}
                 });
+                titleInput.value = ''; // Clear Title
                 contentInput.value = '';
                 linkInput.value = '';
-                tagInput.value = '';
+                // Reset tag to General
+                selectedTag = 'General';
+                updateTagSelection('General');
             } catch (err) {
-                handleError("Failed to post update. Check console for Firestore rules issues.");
+                handleError("Failed to post.");
                 console.error(err);
             } finally {
                 submitBtn.disabled = false;
@@ -716,102 +666,61 @@
             }
         });
 
-        // Toggle Reaction
         const toggleReaction = async (postId, userId, hasReacted) => {
-            if (!userId || userId === 'temp-anon-user') {
-                handleError("Cannot react. User authentication is required or pending.");
-                return;
-            }
-            
             const docRef = doc(db, COLLECTION_NAME, postId);
-            
             try {
-                // Find the current post data to safely update the reactions map
                 const post = posts.find(p => p.id === postId);
                 if (!post) return;
-
                 let newReactions = { ...post.reactions };
-                
-                if (hasReacted) {
-                    delete newReactions[userId];
-                } else {
-                    newReactions[userId] = true;
-                }
-
+                if (hasReacted) delete newReactions[userId];
+                else newReactions[userId] = true;
                 await updateDoc(docRef, { reactions: newReactions });
-
-            } catch (e) {
-                handleError("Failed to update reaction.");
-                console.error(e);
-            }
+            } catch (e) { handleError("Failed to update reaction."); }
         };
 
-
-        // Toggle Edit State
         const toggleEdit = async (id, currentlyEditing) => {
             if (!isAdmin) return;
-
             if (currentlyEditing) {
-                // Save logic
+                const newTitle = document.getElementById(`edit-title-${id}`).value.trim();
                 const newContent = document.getElementById(`edit-content-${id}`).value.trim();
                 const newLink = document.getElementById(`edit-link-${id}`).value.trim();
-                const newTag = document.getElementById(`edit-tag-${id}`).value.trim();
-
+                const newTag = document.getElementById(`edit-tag-${id}`).value;
                 const originalPost = posts.find(p => p.id === id);
-                if (!originalPost) return;
-                
+
                 try {
-                    // Use setDoc to overwrite with the full data while preserving essential fields
                     await setDoc(doc(db, COLLECTION_NAME, id), { 
+                        title: newTitle,
                         content: newContent, 
                         link: newLink,
                         tag: newTag,
-                        // Preserve original fields
                         authorId: originalPost.authorId,
                         createdAt: originalPost.createdAt,
-                        reactions: originalPost.reactions // Preserve reactions
+                        reactions: originalPost.reactions
                     });
-
                     editingPostId = null;
                     applySearchFilter();
-                } catch (e) {
-                    handleError("Failed to save post.");
-                    console.error(e);
-                }
-
+                } catch (e) { handleError("Failed to save."); }
             } else {
-                // Edit mode
                 editingPostId = id;
                 applySearchFilter();
             }
         };
 
-        // Delete Post
         const deletePost = async (id) => {
             if (!isAdmin) return;
-            try {
-                await deleteDoc(doc(db, COLLECTION_NAME, id));
-            } catch(e) { console.error(e); handleError("Delete failed"); }
+            try { await deleteDoc(doc(db, COLLECTION_NAME, id)); } 
+            catch(e) { handleError("Delete failed"); }
         };
 
-        // --- TOOLS LOGIC ---
-
-        // Time Decimal Converter
+        // --- UTILS ---
+        
+        // Time Calculator
         function calculateDecimalTime() {
             const hours = parseInt(hoursInput.value) || 0;
             const minutes = parseInt(minutesInput.value) || 0;
-
-            if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-                decimalResult.textContent = 'Error';
-                decimalResult.classList.add('text-red-500');
-                return;
-            }
-
-            const decimal = hours + (minutes / 60);
-            decimalResult.textContent = decimal.toFixed(2);
-            decimalResult.classList.remove('text-red-500');
+            if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return;
+            decimalResult.textContent = (hours + (minutes / 60)).toFixed(2);
         }
-
         hoursInput.addEventListener('input', calculateDecimalTime);
         minutesInput.addEventListener('input', calculateDecimalTime);
 
@@ -819,79 +728,25 @@
         function calculatePercentage() {
             const x = parseFloat(percentX.value) || 0;
             const y = parseFloat(percentY.value) || 0;
-
-            if (isNaN(x) || isNaN(y)) {
-                percentageResult.textContent = 'Error';
-                percentageResult.classList.add('text-red-500');
-                return;
-            }
-
-            const result = (x / 100) * y;
-            percentageResult.textContent = result.toFixed(2).replace(/\.00$/, '');
-            percentageResult.classList.remove('text-red-500');
+            percentageResult.textContent = ((x / 100) * y).toFixed(2).replace(/\.00$/, '');
         }
-
         percentX.addEventListener('input', calculatePercentage);
         percentY.addEventListener('input', calculatePercentage);
-        calculatePercentage(); // Initial run
 
-        // Temperature Converter
-        let isConvertingF = false; // Flag to prevent infinite loops
+        clearLinkBtn.addEventListener('click', () => linkInput.value = '');
 
-        function convertTemperature(inputElement, unit) {
-            if (isConvertingF) return; // Prevent loop
-
-            const value = parseFloat(inputElement.value);
-            if (isNaN(value)) {
-                celsiusInput.value = '';
-                fahrenheitInput.value = '';
-                return;
-            }
-            
-            isConvertingF = true;
-
-            if (unit === 'C') {
-                const f = (value * 9/5) + 32;
-                fahrenheitInput.value = f.toFixed(1);
-            } else if (unit === 'F') {
-                const c = (value - 32) * 5/9;
-                celsiusInput.value = c.toFixed(1);
-            }
-            isConvertingF = false;
-        }
-
-        celsiusInput.addEventListener('input', () => convertTemperature(celsiusInput, 'C'));
-        fahrenheitInput.addEventListener('input', () => convertTemperature(fahrenheitInput, 'F'));
-        convertTemperature(celsiusInput, 'C'); // Initial run
-
-        // --- UTILITIES & UI Toggles ---
-        
-        // Link Input Clear
-        clearLinkBtn.addEventListener('click', () => {
-            linkInput.value = '';
-        });
-
-        // Dark Mode Toggle Fix: Ensure robust class swap and icon re-creation
         darkModeToggle.addEventListener('click', () => {
-            console.log("Toggling theme...");
             const html = document.documentElement;
-
             if (html.classList.contains('dark')) {
-                // Switching to Light
                 html.classList.remove('dark');
                 localStorage.theme = 'light';
-                // Note: The UI now looks heavily optimized for dark mode, light mode might look sparse.
             } else {
-                // Switching to Dark
                 html.classList.add('dark');
                 localStorage.theme = 'dark';
             }
-            
-            // Re-render icons to ensure the sun/moon icon switch updates their SVG wrapper.
-            lucide.createIcons(); 
+            lucide.createIcons();
         });
 
-        // Scroll to Top Button
         window.onscroll = function() {
             if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
                 scrollToTopBtn.classList.add('opacity-100', 'pointer-events-auto');
@@ -899,15 +754,11 @@
                 scrollToTopBtn.classList.remove('opacity-100', 'pointer-events-auto');
             }
         };
-
-        scrollToTopBtn.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+        scrollToTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
         function formatRelativeTime(ts) {
             if (!ts || !ts.seconds) return 'Just now';
             const seconds = Math.floor((new Date() - (ts.seconds * 1000)) / 1000);
-
             if (seconds < 60) return `${seconds}s ago`;
             const minutes = Math.floor(seconds / 60);
             if (minutes < 60) return `${minutes}m ago`;
@@ -915,25 +766,20 @@
             if (hours < 24) return `${hours}h ago`;
             const days = Math.floor(hours / 24);
             if (days < 30) return `${days}d ago`;
-
-            // Fallback to absolute date for older posts
-            return new Date(ts.seconds * 1000).toLocaleDateString('en-US', {
-                month: 'short', day: 'numeric', year: 'numeric'
-            });
+            return new Date(ts.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         }
         
         function handleError(msg) {
             errorMessage.textContent = msg;
             errorContainer.classList.remove('hidden');
-            setTimeout(() => errorContainer.classList.add('hidden'), 8000);
+            setTimeout(() => errorContainer.classList.add('hidden'), 5000);
         }
         
         function escapeHtml(text) {
             if (!text) return text;
             return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
-
-        // Init Icons on load
+        
         lucide.createIcons();
     </script>
 </body>
