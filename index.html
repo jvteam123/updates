@@ -58,7 +58,6 @@
         <header class="mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex-grow">
                 <h1 class="text-2xl font-bold tracking-tight">PCS Updates</h1>
-                <!-- Removed: Maintained via Firestore (HTML Version) -->
             </div>
             
             <div class="flex items-center gap-4">
@@ -123,7 +122,7 @@
                 </div>
 
                 <div class="flex items-center justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
-                    <button id="submit-btn" class="flex items-center justify-center px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <button id="submit-btn" class="flex items-center justify-center px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         <span class="mr-2">Waiting for Auth...</span>
                         <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
                     </button>
@@ -243,8 +242,7 @@
         import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
 
         // --- CONFIGURATION START ---
-        // The __firebase_config variable would normally be used here, but for this standalone example, 
-        // I will define a placeholder config.
+        // Placeholder config since __firebase_config is not available here
         const firebaseConfig = {
             apiKey: "AIzaSyBBcrvThge1YHswamX_pb7KghiCm5ROUH8",
             authDomain: "pcs-updates.firebaseapp.com",
@@ -493,13 +491,13 @@
             }
             
             // FIX: Safely retrieve currentUser.uid for function calls in the template
-            const currentUserId = currentUser ? currentUser.uid : '';
+            const currentUserId = currentUser ? currentUser.uid : 'temp-anon-user';
 
             feedContainer.innerHTML = currentPosts.map(post => {
                 const isCurrentEditing = editingPostId === post.id;
                 const postReactions = post.reactions;
                 const reactionCount = Object.keys(postReactions).length;
-                const hasReacted = currentUserId && postReactions[currentUserId];
+                const hasReacted = currentUserId !== 'temp-anon-user' && postReactions[currentUserId];
 
                 // Post Content (Edit Mode vs. View Mode)
                 const postContentHtml = isCurrentEditing
@@ -513,10 +511,10 @@
                         ${post.link ? renderMedia(post.link) : ''}
                       `;
 
-                // Admin Buttons
+                // Admin Buttons - FIXED: Enclosing boolean/string arguments in quotes for safety
                 const adminButtons = isAdmin ? `
                     <div class="flex gap-2">
-                        <button onclick="toggleEdit('${post.id}', ${isCurrentEditing})" 
+                        <button onclick="toggleEdit('${post.id}', '${isCurrentEditing}')" 
                             class="p-1 text-xs font-medium rounded-md ${isCurrentEditing ? 'bg-green-600 text-white hover:bg-green-700' : 'text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'}">
                             <i data-lucide="${isCurrentEditing ? 'save' : 'edit'}" class="w-3 h-3 mr-1 inline"></i>
                             ${isCurrentEditing ? 'Save' : 'Edit'}
@@ -530,9 +528,9 @@
                     </div>
                 ` : '';
 
-                // Reaction Button - uses the safe currentUserId
+                // Reaction Button - FIXED: All args are strings (postId, currentUserId, hasReacted status)
                 const reactionButton = `
-                    <button onclick="toggleReaction('${post.id}', '${currentUserId}', ${hasReacted})"
+                    <button onclick="toggleReaction('${post.id}', '${currentUserId}', '${hasReacted ? 'true' : 'false'}')"
                             class="flex items-center gap-1.5 p-1 px-2 text-sm rounded-full transition-colors ${hasReacted ? 'bg-red-500 text-white hover:bg-red-600' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'}">
                         <i data-lucide="heart" class="w-4 h-4 fill-current ${hasReacted ? '' : 'fill-none'}"></i>
                         <span class="font-medium">${reactionCount}</span>
@@ -647,12 +645,13 @@
         });
 
         // Toggle Reaction
-        window.toggleReaction = async (postId, userId, hasReacted) => {
+        window.toggleReaction = async (postId, userId, hasReactedString) => {
             if (!userId || userId === 'temp-anon-user') {
                 handleError("Cannot react. User authentication is required or pending.");
                 return;
             }
             
+            const hasReacted = hasReactedString === 'true';
             const docRef = doc(db, COLLECTION_NAME, postId);
             
             try {
@@ -678,8 +677,9 @@
 
 
         // Toggle Edit State
-        window.toggleEdit = async (id, currentlyEditing) => {
+        window.toggleEdit = async (id, currentlyEditingString) => {
             if (!isAdmin) return;
+            const currentlyEditing = currentlyEditingString === 'true';
 
             if (currentlyEditing) {
                 // Save logic
