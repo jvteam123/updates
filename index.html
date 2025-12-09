@@ -335,7 +335,7 @@
             currentView = viewName;
             
             [timelineView, toolsView].forEach(view => {
-                view.classList.toggle('hidden', view.id !== `${viewName}-view`);
+                view.classList.toggle('hidden', view.id !== `${viewName}-view');
             });
 
             navTabs.forEach(tab => {
@@ -514,6 +514,8 @@
                     </button>
                 `;
 
+                // **FIX: Use ternary operator to safely access substring**
+                const displayedAuthorId = post.authorId ? escapeHtml(post.authorId).substring(0, 8) + '...' : 'Anonymous';
 
                 return `
                     <div class="group relative pl-8 pb-8 last:pb-0 border-l-2 border-gray-200 dark:border-gray-800">
@@ -524,7 +526,7 @@
                             <div class="flex items-center justify-between text-xs text-gray-500">
                                 <div class="flex items-center gap-2">
                                     <span class="font-mono text-xs text-gray-400" title="Author UID: ${escapeHtml(post.authorId || 'N/A')}">
-                                        ${escapeHtml(post.authorId).substring(0, 8)}...
+                                        ${displayedAuthorId}
                                     </span>
                                     <span class="text-xs text-gray-500">
                                         &bull; ${formatRelativeTime(post.createdAt)}
