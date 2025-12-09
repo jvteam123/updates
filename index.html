@@ -413,6 +413,9 @@
             // const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
             // const collectionPath = `/artifacts/${appId}/public/data/${COLLECTION_NAME}`;
 
+            console.log(`Firestore Collection Path Used: ${COLLECTION_NAME}`);
+            console.warn(`NOTE: In a live Canvas environment, the path would typically be: /artifacts/{app_id}/public/data/${COLLECTION_NAME}`);
+
             onSnapshot(collection(db, COLLECTION_NAME), (snapshot) => {
                 posts = snapshot.docs.map(doc => ({ 
                     id: doc.id, 
