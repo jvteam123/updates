@@ -133,8 +133,8 @@
         <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl w-full max-w-sm">
                 <h2 class="text-xl font-bold mb-4">Admin Login</h2>
-                <input id="admin-user" type="text" placeholder="Username (admin)" class="w-full p-2 mb-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
-                <input id="admin-pass" type="password" placeholder="Password (admin)" class="w-full p-2 mb-4 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                <input id="admin-user" type="text" placeholder="Username (admin)" class="w-full p-2 mb-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="admin">
+                <input id="admin-pass" type="password" placeholder="Password (admin)" class="w-full p-2 mb-4 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="admin">
                 <div class="flex justify-end gap-3">
                     <button id="close-modal-btn" class="px-4 py-2 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
                     <button id="submit-login-btn" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Login</button>
@@ -144,7 +144,7 @@
         
         <div id="success-container" class="hidden fixed top-4 right-4 z-50 max-w-sm bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-200 p-4 rounded-lg border border-green-200 dark:border-green-800 text-sm flex items-start gap-3 shadow-lg">
             <i data-lucide="check-circle" class="w-5 h-5 mt-0.5"></i>
-            <span id="success-message">Update posted successfully!</span>
+            <span id="success-message">Update successful!</span>
             <button onclick="document.getElementById('success-container').classList.add('hidden')" class="ml-auto text-green-500 hover:text-green-700">&times;</button>
         </div>
 
@@ -270,9 +270,8 @@
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js';
-        // Note: signInWithEmailAndPassword is no longer imported as we revert to client-side check
-        import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
-        import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc, onSnapshot, serverTimestamp, getDoc } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
+        import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
+        import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
 
         // --- CONFIGURATION START ---
         const firebaseConfig = {
@@ -285,7 +284,7 @@
         };
         // --- CONFIGURATION END ---
         
-        // --- ADMIN CONFIG (REVERTED TO HARDCODED CREDENTIALS) ---
+        // --- ADMIN CONFIG (HARDCODED) ---
         const ADMIN_USERNAME = 'admin';
         const ADMIN_PASSWORD = 'admin'; 
 
@@ -297,13 +296,12 @@
 
         // --- STATE MANAGEMENT ---
         let currentUser = null;
-        // REVERTED: isAdmin is no longer managed by Firebase Auth state
-        let isAdmin = localStorage.getItem('isAdminLoggedIn') === 'true'; 
+        let isAdmin = false;
         let posts = [];
         let filteredPosts = [];
         let editingPostId = null;
         let currentView = 'timeline';
-        let selectedTag = 'General'; 
+        let selectedTag = 'General';
 
         // --- DOM ELEMENTS ---
         const userStatus = document.getElementById('user-status');
@@ -327,8 +325,7 @@
         const loginModal = document.getElementById('login-modal');
         const submitLoginBtn = document.getElementById('submit-login-btn');
         const closeModalBtn = document.getElementById('close-modal-btn');
-        // REVERTED: Changed back to a generic username input
-        const adminUser = document.getElementById('admin-user'); 
+        const adminUser = document.getElementById('admin-user');
         const adminPass = document.getElementById('admin-pass');
         const adminStatus = document.getElementById('admin-status');
 
@@ -338,8 +335,8 @@
         
         const errorContainer = document.getElementById('error-container');
         const errorMessage = document.getElementById('error-message');
-        const successContainer = document.getElementById('success-container');
-        const successMessage = document.getElementById('success-message');
+        const successContainer = document.getElementById('success-container'); // NEW
+        const successMessage = document.getElementById('success-message');     // NEW
 
         // Tool inputs
         const hoursInput = document.getElementById('hours-input');
@@ -352,35 +349,36 @@
 
         // --- AUTH & INITIALIZATION ---
 
-        // Start anonymous auth for all users to enable reactions
         signInAnonymously(auth).catch((e) => {
              console.error("Auth failed", e);
-             handleError("Authentication failed: could not connect to service.");
+             handleError("Authentication failed.");
         });
         
-        // MODIFIED: Simplified onAuthStateChanged to only manage the Firebase user (for reactions)
-        // and initialize the listener. It no longer handles the 'isAdmin' state.
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                // Since we need a UID for reaction management, we'll use the anonymous UID.
-                // Note: The UI for the admin state is now managed by updateAdminUI()
+                // Updated User UI in Header
                 userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-800";
                 userStatus.innerHTML = '<i data-lucide="user-check" class="w-5 h-5"></i>';
-                userStatus.title = `Connected as Member (Anon UID: ${user.uid})`;
+                userStatus.title = `Connected as Member`;
+                
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Post Update</span><i data-lucide="send" class="w-3.5 h-3.5"></i>';
 
                 initRealtimeListener();
             } else {
                 currentUser = null;
-                userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800 text-gray-400";
+                userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800 text-gray-400 animate-pulse";
                 userStatus.innerHTML = '<i data-lucide="user" class="w-5 h-5"></i>';
-                userStatus.title = `Anonymous User`;
+                
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>Waiting for Auth...</span><i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i>';
             }
             lucide.createIcons();
-            updateAdminUI(); // Ensure admin UI reflects current state (from localStorage)
+            updateAdminUI();
         });
 
-        // --- UI/VIEW MANAGEMENT (No Change) ---
+        // --- UI/VIEW MANAGEMENT ---
 
         function switchView(viewName) {
             currentView = viewName;
@@ -402,8 +400,9 @@
             tab.addEventListener('click', () => switchView(tab.dataset.view));
         });
 
-        // --- TAG SELECTION LOGIC (No Change) ---
+        // --- TAG SELECTION LOGIC ---
         
+        // Initialize Default Selection
         updateTagSelection(selectedTag);
 
         tagPills.forEach(btn => {
@@ -423,22 +422,15 @@
             });
         }
 
-        // --- ADMIN LOGIN LOGIC (REVERTED TO CLIENT-SIDE HARDCODED CHECK) ---
+        // --- ADMIN LOGIN LOGIC ---
 
         function updateAdminUI() {
             if (isAdmin) {
                 adminStatus.textContent = 'ADMIN';
                 adminStatus.classList.remove('hidden');
-                loginBtn.textContent = 'Logout (Admin)';
+                loginBtn.textContent = 'Logout';
                 loginBtnMobile.textContent = 'Logout';
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<span>Post Update</span><i data-lucide="send" class="w-3.5 h-3.5"></i>';
-
-                // Update user status for Admin visual
-                userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-400 font-bold border border-red-200 dark:border-red-800";
-                userStatus.innerHTML = '<i data-lucide="shield-check" class="w-5 h-5"></i>';
-                userStatus.title = `Admin User`;
-
+                
                 const logoutHandler = () => handleLogout();
                 loginBtn.onclick = logoutHandler;
                 loginBtnMobile.onclick = logoutHandler;
@@ -447,64 +439,46 @@
                 adminStatus.classList.add('hidden');
                 loginBtn.textContent = 'Admin Login';
                 loginBtnMobile.textContent = 'Admin';
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span>Admin Login Required</span><i data-lucide="send" class="w-3.5 h-3.5"></i>';
                 
-                // Revert user status to anonymous if not admin
-                if(currentUser) {
-                    userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-800";
-                    userStatus.innerHTML = '<i data-lucide="user-check" class="w-5 h-5"></i>';
-                    userStatus.title = `Connected as Member (Anon)`;
-                } else {
-                    userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800 text-gray-400";
-                    userStatus.innerHTML = '<i data-lucide="user" class="w-5 h-5"></i>';
-                    userStatus.title = `Anonymous User`;
-                }
-
                 const loginHandler = () => loginModal.classList.remove('hidden');
                 loginBtn.onclick = loginHandler;
                 loginBtnMobile.onclick = loginHandler;
             }
-            lucide.createIcons();
-            applySearchFilter(); 
+            applySearchFilter();
         }
         
         function handleLogin() {
-            const username = adminUser.value.trim();
-            const password = adminPass.value;
-
-            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+            if (adminUser.value === ADMIN_USERNAME && adminPass.value === ADMIN_PASSWORD) {
                 isAdmin = true;
-                localStorage.setItem('isAdminLoggedIn', 'true'); // Persist admin state
                 loginModal.classList.add('hidden');
-                adminUser.value = '';
-                adminPass.value = '';
                 updateAdminUI();
-                handleSuccess("Admin login successful!");
+                handleSuccess("Admin login successful."); // NEW
             } else {
-                handleError("Login failed. Invalid username or password.");
+                handleError("Invalid credentials.");
             }
         }
 
         function handleLogout() {
             isAdmin = false;
-            localStorage.removeItem('isAdminLoggedIn'); // Clear persisted admin state
+            adminUser.value = ADMIN_USERNAME;
+            adminPass.value = ADMIN_PASSWORD;
             updateAdminUI();
-            handleSuccess("Logged out of Admin account.");
+            handleSuccess("Logged out of Admin account."); // NEW
         }
 
         submitLoginBtn.addEventListener('click', handleLogin);
         closeModalBtn.addEventListener('click', () => {
-            adminUser.value = '';
-            adminPass.value = '';
-            loginModal.classList.add('hidden');
+             adminUser.value = ADMIN_USERNAME; // Reset to default
+             adminPass.value = ADMIN_PASSWORD; // Reset to default
+             loginModal.classList.add('hidden');
         });
 
-        // --- FIRESTORE DATA (No Change) ---
+        // --- FIRESTORE DATA ---
 
         function initRealtimeListener() {
             if (!currentUser) return;
             
+            // Using the root collection 'posts' for this artifact
             onSnapshot(collection(db, COLLECTION_NAME), (snapshot) => {
                 posts = snapshot.docs.map(doc => ({ 
                     id: doc.id, 
@@ -515,11 +489,11 @@
                 applySearchFilter();
             }, (error) => {
                 console.error(error);
-                if(error.code === 'permission-denied') handleError("Permission denied. Check Firestore rules.");
+                if(error.code === 'permission-denied') handleError("Permission denied.");
             });
         }
 
-        // --- SEARCH FUNCTIONALITY (No Change) ---
+        // --- SEARCH FUNCTIONALITY ---
         searchInput.addEventListener('input', applySearchFilter);
 
         function applySearchFilter() {
@@ -563,6 +537,9 @@
                 const reactionCount = Object.keys(postReactions).length;
                 const hasReacted = currentUserId !== 'temp-anon-user' && postReactions[currentUserId];
                 
+                // NEW: Check for Post Authorship
+                const isAuthor = post.authorId === currentUserId;
+
                 // Determine Tag Style
                 let tagColorClass = "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
                 if (post.tag === 'Feature') tagColorClass = "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
@@ -588,8 +565,8 @@
                         ${post.link ? renderMedia(post.link) : ''}
                       `;
 
-                // Admin Buttons
-                const adminButtons = isAdmin ? `
+                // MODIFIED: Post Controls (Admin OR Author)
+                const postControls = (isAdmin || isAuthor) ? `
                     <div class="flex gap-2">
                         <button data-action="${isCurrentEditing ? 'save-edit' : 'edit-post'}" 
                             data-post-id="${post.id}"
@@ -616,20 +593,24 @@
                     </button>
                 `;
 
+                // MODIFIED: Header Bar for Admin UID
                 return `
-                    <div class="post-container group relative pl-6 pb-8 last:pb-0">
+                    <div class="group relative pl-6 pb-8 last:pb-0">
                         <div class="timeline-dot absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full bg-blue-500 ring-4 ring-gray-50 dark:ring-gray-950"></div>
                         
                         <div class="flex flex-col gap-1.5">
                             <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="font-medium text-gray-900 dark:text-gray-200 text-xs">${post.authorId === 'admin' ? 'Admin Post' : 'Member'}</span>
+                                    <span class="font-medium text-gray-900 dark:text-gray-200 text-xs">
+                                        ${post.authorId === 'admin' ? 'Admin Post' : 'Member'}
+                                        ${isAdmin ? `<span class="text-gray-400 font-mono text-[10px] ml-1 select-all" title="Author ID">${escapeHtml(post.authorId)}</span>` : ''}
+                                    </span>
                                     <span class="text-xs text-gray-400">
                                         &bull; ${formatRelativeTime(post.createdAt)}
                                     </span>
                                     ${post.tag ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase ${tagColorClass}">${escapeHtml(post.tag)}</span>` : ''}
                                 </div>
-                                ${adminButtons}
+                                ${postControls}
                             </div>
 
                             ${postContentHtml}
@@ -670,7 +651,7 @@
             }
         }
 
-        // --- EVENTS ---
+        // --- EVENTS (MODIFIED FOR MEMBER EDIT/DELETE) ---
         feedContainer.addEventListener('click', (e) => {
             const target = e.target.closest('[data-action]');
             if (!target) return;
@@ -681,37 +662,41 @@
             const currentUserId = currentUser ? currentUser.uid : null;
 
             if (!currentUserId) {
-                 handleError("Authentication required to interact.");
+                 handleError("Authentication required.");
                  return;
             }
+            
+            // NEW: Find the post and determine permission
+            const post = posts.find(p => p.id === postId);
+            const isAuthor = post && post.authorId === currentUserId;
+            const canEditOrDelete = isAdmin || isAuthor;
 
             switch(action) {
                 case 'toggle-reaction':
                     toggleReaction(postId, currentUserId, hasReacted);
                     break;
                 case 'edit-post':
-                    if (isAdmin) toggleEdit(postId, false);
-                    else handleError("Admin privileges required to edit.");
+                    if (canEditOrDelete) toggleEdit(postId, false);
+                    else handleError("Admin or Post Author privileges required.");
                     break;
                 case 'save-edit':
-                    if (isAdmin) toggleEdit(postId, true);
-                    else handleError("Admin privileges required to save.");
+                    if (canEditOrDelete) toggleEdit(postId, true);
+                    else handleError("Admin or Post Author privileges required to save.");
                     break;
                 case 'delete-post':
-                    if (isAdmin) deletePost(postId);
-                    else handleError("Admin privileges required to delete.");
+                    if (canEditOrDelete) deletePost(postId);
+                    else handleError("Admin or Post Author privileges required to delete.");
                     break;
             }
         });
 
         submitBtn.addEventListener('click', async () => {
-            const title = titleInput.value.trim(); 
+            const title = titleInput.value.trim();
             const content = contentInput.value.trim();
             const link = linkInput.value.trim();
-            const tag = selectedTag; 
+            const tag = selectedTag;
 
-            // Only allow posting if the user is an Admin
-            if (!isAdmin) return handleError("Only the Admin can post new updates.");
+            if (!currentUser) return handleError("Not authenticated.");
 
             if (!content && !link && !title) {
                 composerCard.classList.add('flash-red');
@@ -728,8 +713,7 @@
                     content,
                     link,
                     tag,
-                    // REVERTED: Now using a static 'admin' ID for the author
-                    authorId: 'admin', 
+                    authorId: isAdmin ? 'admin' : currentUser.uid, // Only use 'admin' if actually logged in as hardcoded admin
                     createdAt: serverTimestamp(),
                     reactions: {}
                 });
@@ -738,7 +722,7 @@
                 linkInput.value = '';
                 selectedTag = 'General';
                 updateTagSelection('General');
-                handleSuccess("Update posted successfully!"); 
+                handleSuccess("Update posted successfully!"); // NEW
             } catch (err) {
                 handleError("Failed to post. Check your Firestore Security Rules.");
                 console.error(err);
@@ -757,12 +741,14 @@
                 let newReactions = { ...post.reactions };
                 if (hasReacted) delete newReactions[userId];
                 else newReactions[userId] = true;
-                await updateDoc(docRef, { reactions: newReactions }); 
+                await updateDoc(docRef, { reactions: newReactions });
             } catch (e) { handleError("Failed to update reaction."); }
         };
 
+        // MODIFIED: Removed redundant 'if (!isAdmin) return;' check. Permission is checked in event listener.
         const toggleEdit = async (id, currentlyEditing) => {
-            if (!isAdmin) return;
+            if (!id) return; 
+
             if (currentlyEditing) {
                 const newTitle = document.getElementById(`edit-title-${id}`).value.trim();
                 const newContent = document.getElementById(`edit-content-${id}`).value.trim();
@@ -771,19 +757,18 @@
                 const originalPost = posts.find(p => p.id === id);
 
                 try {
-                    // Update only mutable fields while preserving createdAt/reactions
                     await setDoc(doc(db, COLLECTION_NAME, id), { 
                         title: newTitle,
                         content: newContent, 
                         link: newLink,
                         tag: newTag,
-                        authorId: originalPost.authorId, // Ensure author is preserved
+                        authorId: originalPost.authorId,
                         createdAt: originalPost.createdAt,
                         reactions: originalPost.reactions
                     });
                     editingPostId = null;
                     applySearchFilter();
-                    handleSuccess("Post saved successfully!");
+                    handleSuccess("Post saved successfully!"); // NEW
                 } catch (e) { handleError("Failed to save."); }
             } else {
                 editingPostId = id;
@@ -791,18 +776,20 @@
             }
         };
 
+        // MODIFIED: Removed redundant 'if (!isAdmin) return;' check. Permission is checked in event listener.
         const deletePost = async (id) => {
-            if (!isAdmin) return;
+            if (!id) return;
             if (!confirm("Are you sure you want to delete this post?")) return;
             try { 
                 await deleteDoc(doc(db, COLLECTION_NAME, id));
-                handleSuccess("Post deleted."); 
+                handleSuccess("Post deleted."); // NEW
             } 
             catch(e) { handleError("Delete failed. Check security rules."); }
         };
 
-        // --- UTILS (No Change) ---
+        // --- UTILS (MODIFIED TO INCLUDE handleSuccess) ---
         
+        // Time Calculator
         function calculateDecimalTime() {
             const hours = parseInt(hoursInput.value) || 0;
             const minutes = parseInt(minutesInput.value) || 0;
@@ -812,6 +799,7 @@
         hoursInput.addEventListener('input', calculateDecimalTime);
         minutesInput.addEventListener('input', calculateDecimalTime);
 
+        // Percentage Calculator
         function calculatePercentage() {
             const x = parseFloat(percentX.value) || 0;
             const y = parseFloat(percentY.value) || 0;
@@ -865,20 +853,20 @@
             errorContainer.classList.remove('hidden');
             setTimeout(() => errorContainer.classList.add('hidden'), 5000);
         }
-
+        
+        // NEW: Success Notification Handler
         function handleSuccess(msg) {
             successMessage.textContent = msg;
             successContainer.classList.remove('hidden');
             setTimeout(() => successContainer.classList.add('hidden'), 5000);
         }
-        
+
         function escapeHtml(text) {
             if (!text) return text;
             return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
         
-        // Final UI update check after script load
-        updateAdminUI(); 
+        // Final initialization calls
         calculateDecimalTime(); 
         calculatePercentage();
         lucide.createIcons();
