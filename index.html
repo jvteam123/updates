@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline Updates</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .timeline-dot {
+            box-shadow: 0 0 0 4px #f9fafb; /* Light mode ring */
+        }
+        @media (prefers-color-scheme: dark) {
+            .timeline-dot { box-shadow: 0 0 0 4px #030712; /* Dark mode ring */ }
+        }
+        /* Custom styles for the Time Converter inputs */
+        .converter-input {
+            appearance: textfield; /* Remove number arrows in Firefox */
+        }
+        .converter-input::-webkit-outer-spin-button,
+        .converter-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 min-h-screen transition-colors">
+
+    <div id="app" class="max-w-2xl mx-auto px-4 py-8">
+        <!-- Header & Nav -->
+        <header class="mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex-grow">
+                <h1 class="text-2xl font-bold tracking-tight">Timeline Updates</h1>
+                <p class="text-gray-500 text-sm mt-1">Maintained via Firestore (HTML Version)</p>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div id="admin-status" class="text-xs font-medium text-red-500"></div>
+                <button id="login-btn" class="px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded-full text-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">Admin Login</button>
+                <div id="user-status" class="h-8 w-8 rounded-full bg-gray-200 animate-pulse" title="Anonymous User"></div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div id="nav-tabs" class="flex border-b border-gray-200 dark:border-gray-800 mb-6">
+            <button data-view="timeline" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400">Timeline</button>
+            <button data-view="tools" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Tools</button>
+        </div>
+
+        <!-- Admin Login Modal/Popup -->
+        <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl w-full max-w-sm">
+                <h2 class="text-xl font-bold mb-4">Admin Login</h2>
+                <input id="admin-user" type="text" placeholder="Username (admin)" class="w-full p-2 mb-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="admin">
+                <input id="admin-pass" type="password" placeholder="Password (admin)" class="w-full p-2 mb-4 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="admin">
+                <div class="flex justify-end gap-3">
+                    <button id="close-modal-btn" class="px-4 py-2 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
+                    <button id="submit-login-btn" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Login</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Container -->
+        <div id="error-container" class="hidden mb-6 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-200 p-4 rounded-lg border border-red-200 dark:border-red-800 text-sm flex items-center gap-3">
+            <i data-lucide="alert-circle" class="w-5 h-5"></i>
+            <span id="error-message"></span>
+        </div>
+
+        <!-- Timeline View -->
+        <div id="timeline-view" class="view">
+            <!-- Composer Form -->
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 mb-8 p-4">
+                <textarea id="post-content" placeholder="What's new?" 
+                    class="w-full min-h-[100px] resize-none bg-transparent border-0 focus:ring-0 text-lg placeholder-gray-400 mb-2 outline-none"></textarea>
+                
+                <div id="link-input-container" class="hidden flex items-center gap-2 mb-4 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-md">
+                    <i data-lucide="link" class="w-4 h-4 text-gray-400"></i>
+                    <input type="url" id="link-url" placeholder="https://example.com" 
+                        class="flex-1 bg-transparent border-0 focus:outline-none text-sm">
+                    <button id="close-link-btn" class="text-gray-400 hover:text-gray-600">&times;</button>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+                    <button id="toggle-link-btn" class="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                        <i data-lucide="link" class="w-5 h-5"></i>
+                    </button>
+                    <button id="submit-btn" class="flex items-center justify-center px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="mr-2">Post</span>
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Timeline Feed -->
+            <div id="posts-feed" class="space-y-6 relative">
+                <div class="text-center py-12 text-gray-400">Loading updates...</div>
+            </div>
+        </div>
+
+        <!-- Tools View -->
+        <div id="tools-view" class="view hidden">
+            <h2 class="text-xl font-bold mb-4">Utility Tools</h2>
+            
+            <!-- Time Decimal Converter -->
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 mb-6">
+                <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <i data-lucide="clock" class="w-5 h-5 text-blue-500"></i>
+                    Time Decimal Converter
+                </h3>
+                <p class="text-sm text-gray-500 mb-4">Convert time (HH:MM) to decimal hours (e.g., 8:30 becomes 8.5).</p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                    <div class="flex-1">
+                        <label for="hours-input" class="block text-xs font-medium text-gray-500 mb-1">Hours (0-23)</label>
+                        <input type="number" id="hours-input" min="0" max="23" placeholder="HH" value="8"
+                            class="converter-input w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-center text-lg">
+                    </div>
+                    <div class="flex-1">
+                        <label for="minutes-input" class="block text-xs font-medium text-gray-500 mb-1">Minutes (0-59)</label>
+                        <input type="number" id="minutes-input" min="0" max="59" placeholder="MM" value="30"
+                            class="converter-input w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-center text-lg">
+                    </div>
+                </div>
+
+                <div class="text-center mt-6 p-4 border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <p class="text-sm text-blue-600 dark:text-blue-300">Decimal Time Result:</p>
+                    <p id="decimal-result" class="text-3xl font-bold text-blue-800 dark:text-blue-200 mt-1">8.5</p>
+                </div>
+            </div>
+
+            <!-- Future Tools Placeholder -->
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 text-center text-gray-400">
+                <p>More tools coming soon!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Logic -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // --- CONFIGURATION START ---
+        // PASTE YOUR FIREBASE CONFIG HERE
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "SENDER_ID",
+            appId: "APP_ID"
+        };
+        // --- CONFIGURATION END ---
+
+        // Initialize
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const COLLECTION_NAME = 'posts'; // Simple collection name for standalone
+
+        // --- STATE MANAGEMENT ---
+        let currentUser = null;
+        let isAdmin = false;
+        let posts = [];
+        let editingPostId = null;
+        let currentView = 'timeline';
+
+        // --- DOM ELEMENTS ---
+        const userStatus = document.getElementById('user-status');
+        const feedContainer = document.getElementById('posts-feed');
+        const submitBtn = document.getElementById('submit-btn');
+        const contentInput = document.getElementById('post-content');
+        const linkInput = document.getElementById('link-url');
+        const linkContainer = document.getElementById('link-input-container');
+        const toggleLinkBtn = document.getElementById('toggle-link-btn');
+        const closeLinkBtn = document.getElementById('close-link-btn');
+        
+        const loginBtn = document.getElementById('login-btn');
+        const loginModal = document.getElementById('login-modal');
+        const submitLoginBtn = document.getElementById('submit-login-btn');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const adminUser = document.getElementById('admin-user');
+        const adminPass = document.getElementById('admin-pass');
+        const adminStatus = document.getElementById('admin-status');
+
+        const timelineView = document.getElementById('timeline-view');
+        const toolsView = document.getElementById('tools-view');
+        const navTabs = document.querySelectorAll('.tab-btn');
+        
+        const hoursInput = document.getElementById('hours-input');
+        const minutesInput = document.getElementById('minutes-input');
+        const decimalResult = document.getElementById('decimal-result');
+        const errorContainer = document.getElementById('error-container');
+        const errorMessage = document.getElementById('error-message');
+
+
+        // --- AUTH & INITIALIZATION ---
+
+        signInAnonymously(auth).catch((e) => handleError(`Auth Failed: ${e.message}`));
+        
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                userStatus.className = "h-8 w-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500";
+                userStatus.title = `User: ${user.uid}`;
+                initRealtimeListener();
+            } else {
+                currentUser = null;
+                userStatus.className = "h-8 w-8 rounded-full bg-gray-200 animate-pulse";
+                userStatus.title = "Anonymous User";
+            }
+            updateAdminUI();
+        });
+
+        // --- UI/VIEW MANAGEMENT ---
+
+        function switchView(viewName) {
+            currentView = viewName;
+            
+            [timelineView, toolsView].forEach(view => {
+                view.classList.toggle('hidden', view.id !== `${viewName}-view`);
+            });
+
+            navTabs.forEach(tab => {
+                const isActive = tab.dataset.view === viewName;
+                tab.classList.toggle('border-blue-600', isActive);
+                tab.classList.toggle('text-blue-600', isActive);
+                tab.classList.toggle('dark:text-blue-400', isActive);
+                tab.classList.toggle('border-transparent', !isActive);
+                tab.classList.toggle('text-gray-500', !isActive);
+            });
+            lucide.createIcons();
+        }
+
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', () => switchView(tab.dataset.view));
+        });
+
+        // --- ADMIN LOGIN LOGIC ---
+
+        function updateAdminUI() {
+            if (isAdmin) {
+                adminStatus.textContent = 'ADMIN MODE';
+                adminStatus.classList.remove('text-red-500');
+                adminStatus.classList.add('text-green-500', 'font-bold');
+                loginBtn.textContent = 'Logout';
+                loginBtn.onclick = handleLogout;
+            } else {
+                adminStatus.textContent = '';
+                adminStatus.classList.remove('text-green-500', 'font-bold');
+                adminStatus.classList.add('text-red-500');
+                loginBtn.textContent = 'Admin Login';
+                loginBtn.onclick = () => loginModal.classList.remove('hidden');
+            }
+            renderPosts(posts); // Re-render to show/hide edit/delete buttons
+        }
+        
+        function handleLogin() {
+            const user = adminUser.value;
+            const pass = adminPass.value;
+
+            if (user === 'admin' && pass === 'admin') {
+                isAdmin = true;
+                loginModal.classList.add('hidden');
+                updateAdminUI();
+            } else {
+                handleError("Invalid credentials. Try admin/admin.");
+            }
+        }
+
+        function handleLogout() {
+            isAdmin = false;
+            adminUser.value = 'admin';
+            adminPass.value = 'admin';
+            updateAdminUI();
+        }
+
+        submitLoginBtn.addEventListener('click', handleLogin);
+        closeModalBtn.addEventListener('click', () => loginModal.classList.add('hidden'));
+
+        // --- FIRESTORE DATA ---
+
+        function initRealtimeListener() {
+            onSnapshot(collection(db, COLLECTION_NAME), (snapshot) => {
+                posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Sort by createdAt desc
+                posts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+                
+                renderPosts(posts);
+            }, (error) => {
+                console.error(error);
+                if(error.code === 'permission-denied') {
+                   handleError("Permission denied. Check Firestore Rules (should allow anonymous write/read).");
+                }
+            });
+        }
+
+        // --- RENDERING & CRUD ---
+
+        function renderPosts(currentPosts) {
+            if (currentPosts.length === 0) {
+                feedContainer.innerHTML = `
+                    <div class="text-center py-12 text-gray-400">
+                        <i data-lucide="clock" class="w-8 h-8 mx-auto mb-4 opacity-50"></i>
+                        <p>No updates yet.</p>
+                    </div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            feedContainer.innerHTML = currentPosts.map(post => {
+                const isCurrentEditing = editingPostId === post.id;
+                
+                const postContentHtml = isCurrentEditing
+                    ? `
+                        <textarea id="edit-content-${post.id}" class="w-full h-32 p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">${escapeHtml(post.content || '')}</textarea>
+                        ${post.link ? `<input type="url" id="edit-link-${post.id}" class="w-full p-2 mt-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="${escapeHtml(post.link)}" placeholder="Link URL">` : ''}
+                      `
+                    : `
+                        <p class="whitespace-pre-wrap text-base leading-relaxed text-gray-800 dark:text-gray-200">${escapeHtml(post.content)}</p>
+                        ${post.link ? `
+                            <a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer"
+                               class="flex items-center gap-3 p-3 mt-1 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors w-fit max-w-full">
+                                <div class="h-8 w-8 flex items-center justify-center rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shrink-0">
+                                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <p class="text-sm font-medium text-blue-600 dark:text-blue-400 truncate">${escapeHtml(post.link)}</p>
+                                    <p class="text-xs text-gray-500">External Link</p>
+                                </div>
+                            </a>
+                        ` : ''}
+                      `;
+
+                const adminButtons = isAdmin ? `
+                    <div class="flex gap-2">
+                        <button onclick="toggleEdit('${post.id}', ${isCurrentEditing})" 
+                            class="p-1 text-xs font-medium rounded-md ${isCurrentEditing ? 'bg-green-600 text-white hover:bg-green-700' : 'text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'}">
+                            <i data-lucide="${isCurrentEditing ? 'save' : 'edit'}" class="w-3 h-3 mr-1 inline"></i>
+                            ${isCurrentEditing ? 'Save' : 'Edit'}
+                        </button>
+                        ${!isCurrentEditing ? `
+                            <button onclick="deletePost('${post.id}')" class="p-1 text-xs font-medium rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
+                                <i data-lucide="trash-2" class="w-3 h-3 mr-1 inline"></i>
+                                Delete
+                            </button>
+                        ` : ''}
+                    </div>
+                ` : '';
+
+
+                return `
+                    <div class="group relative pl-8 pb-8 last:pb-0 border-l-2 border-gray-200 dark:border-gray-800">
+                        <div class="timeline-dot absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-blue-500 border-4 border-gray-50 dark:border-gray-950"></div>
+                        
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center justify-between text-xs text-gray-500">
+                                <span class="font-mono">${formatDate(post.createdAt)}</span>
+                                ${adminButtons}
+                            </div>
+
+                            ${postContentHtml}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            lucide.createIcons(); // Refresh icons
+        }
+
+        // Add New Post
+        submitBtn.addEventListener('click', async () => {
+            const content = contentInput.value.trim();
+            const link = linkInput.value.trim();
+
+            if (!content && !link) return;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Posting...';
+            lucide.createIcons();
+
+            try {
+                await addDoc(collection(db, COLLECTION_NAME), {
+                    content,
+                    link,
+                    authorId: currentUser.uid,
+                    createdAt: serverTimestamp()
+                });
+                contentInput.value = '';
+                linkInput.value = '';
+                linkContainer.classList.add('hidden');
+            } catch (err) {
+                handleError("Failed to post update. Check console.");
+                console.error(err);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span class="mr-2">Post</span><i data-lucide="send" class="w-4 h-4"></i>';
+                lucide.createIcons();
+            }
+        });
+
+        // Toggle Edit State
+        window.toggleEdit = async (id, currentlyEditing) => {
+            if (!isAdmin) return;
+
+            if (currentlyEditing) {
+                // Save logic
+                const newContent = document.getElementById(`edit-content-${id}`).value.trim();
+                const newLinkEl = document.getElementById(`edit-link-${id}`);
+                const newLink = newLinkEl ? newLinkEl.value.trim() : '';
+                
+                try {
+                    await setDoc(doc(db, COLLECTION_NAME, id), { 
+                        content: newContent, 
+                        link: newLink,
+                        // Preserve original fields like authorId and createdAt if they exist
+                        // Note: Using setDoc overwrites, so it's safer to use updateDoc if you know the doc structure,
+                        // but setDoc with merge: true is not available in this module version. 
+                        // For simplicity in this example, we trust the realtime listener will merge correctly.
+                    }, { merge: true });
+
+                    editingPostId = null;
+                    renderPosts(posts);
+                } catch (e) {
+                    handleError("Failed to save post.");
+                    console.error(e);
+                }
+
+            } else {
+                // Edit mode
+                editingPostId = id;
+                renderPosts(posts);
+            }
+        };
+
+        // Delete Post
+        window.deletePost = async (id) => {
+            if (!isAdmin) return;
+            if(!confirm("Delete this update?")) return;
+            try {
+                await deleteDoc(doc(db, COLLECTION_NAME, id));
+            } catch(e) { console.error(e); handleError("Delete failed"); }
+        };
+
+        // --- TOOLS LOGIC (Time Decimal Converter) ---
+        function calculateDecimalTime() {
+            const hours = parseInt(hoursInput.value) || 0;
+            const minutes = parseInt(minutesInput.value) || 0;
+
+            // Basic validation
+            if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+                decimalResult.textContent = 'Error';
+                decimalResult.classList.add('text-red-500');
+                return;
+            }
+
+            const decimal = hours + (minutes / 60);
+            decimalResult.textContent = decimal.toFixed(2);
+            decimalResult.classList.remove('text-red-500');
+        }
+
+        hoursInput.addEventListener('input', calculateDecimalTime);
+        minutesInput.addEventListener('input', calculateDecimalTime);
+
+        // Run calculation on load (to display default 8.5)
+        calculateDecimalTime();
+
+        // --- UTILITIES & UI Toggles ---
+
+        // Link Input Toggles
+        toggleLinkBtn.addEventListener('click', () => {
+            linkContainer.classList.toggle('hidden');
+            if (!linkContainer.classList.contains('hidden')) linkInput.focus();
+        });
+        closeLinkBtn.addEventListener('click', () => {
+            linkContainer.classList.add('hidden');
+            linkInput.value = '';
+        });
+
+        function formatDate(ts) {
+            if (!ts) return 'Just now';
+            return new Date(ts.seconds * 1000).toLocaleDateString('en-US', {
+                month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric'
+            });
+        }
+        
+        function handleError(msg) {
+            errorMessage.textContent = msg;
+            errorContainer.classList.remove('hidden');
+            setTimeout(() => errorContainer.classList.add('hidden'), 5000);
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return text;
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // Init Icons on load
+        lucide.createIcons();
+    </script>
+</body>
+</html>
