@@ -6,7 +6,6 @@
     <title>PCS Updates</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script async defer src="https://apis.google.com/js/api.js"></script>
     <script>
         // Set up dark mode based on localStorage or system preference (Prevents FOUC)
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -130,7 +129,6 @@
             <button data-view="timeline" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400">Timeline</button>
             <button data-view="tools" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Tools</button>
             <button data-view="pcstools" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">PCS Tools</button>
-            <button data-view="tsc-helper" id="tsc-helper-tab" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">TSC Helper</button>
         </div>
 
         <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -289,42 +287,6 @@
                 </div>
             </div>
         </div>
-        
-        <div id="tsc-helper-view" class="view hidden max-w-3xl mx-auto">
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 p-6">
-                <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                    <i data-lucide="sheets-and-tables" class="w-5 h-5 text-green-600"></i>
-                    TSC Helper: Time Segment Sync
-                </h2>
-
-                <div id="google-auth-status" class="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-200 p-3 rounded-lg border border-red-200 dark:border-red-800 text-sm mb-4 flex items-center justify-between">
-                    <span>Sheet access not granted.</span>
-                    <button id="google-auth-button" class="px-3 py-1 bg-red-600 text-white rounded-lg text-xs hover:bg-red-700 transition-colors">Authorize Access</button>
-                </div>
-                
-                <div id="sync-form-content" class="space-y-4">
-                    <div>
-                        <label for="tech-id-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tech ID</label>
-                        <input type="text" id="tech-id-input" placeholder="Enter your Tech ID" 
-                            class="w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-sm">
-                    </div>
-                    <div>
-                        <label for="time-segment-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Time Segments (Paste one per line)</label>
-                        <textarea id="time-segment-input" placeholder="Example:&#10;2:30 PM - 3:00 PM - Lunch&#10;3:00 PM - 5:00 PM - Task description" 
-                            class="w-full min-h-[150px] resize-none p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-sm font-mono"></textarea>
-                    </div>
-                    <button id="sync-to-sheet-btn" class="w-full flex items-center justify-center gap-2 px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                        <i data-lucide="upload-cloud" class="w-4 h-4"></i>
-                        <span>Sync to Sheet</span>
-                    </button>
-                </div>
-            </div>
-            <div class="text-xs text-gray-400 px-2 mt-4">
-                <p>Note: Syncing data will use your authenticated Google email and append new rows to the configured spreadsheet.</p>
-            </div>
-        </div>
-
-
     </div>
 
     <button id="scroll-to-top" class="fixed bottom-4 right-4 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-opacity duration-300 opacity-0 pointer-events-none z-40">
@@ -344,15 +306,6 @@
             storageBucket: "pcs-updates.firebasestorage.app",
             messagingSenderId: "424424316130",
             appId: "1:424424316130:web:84f63aab43b4687b08d2bb"
-        };
-        
-        // NEW: GOOGLE SHEETS CONFIGURATION
-        const googleConfig = {
-            API_KEY: "AIzaSyBxlhWwf3mlS_6Q3BiUsfpH21AsbhVmDw8",
-            CLIENT_ID: "221107133299-7r4vnbhpsdrnqo8tss0dqbtrr9ou683e.apps.googleusercontent.com",
-            // CRITICAL FIX: Add both Sheets scope and basic user email scope
-            SCOPES: "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email",
-            SPREADSHEET_ID: "1l4utLq6FR4Wnyxe_UMJG6KseiBrUVXJKalyinZDt420",
         };
         // --- CONFIGURATION END ---
         
@@ -376,14 +329,6 @@
         let editingToolId = null; 
         let currentView = 'timeline';
         let selectedTag = 'General';
-        
-        // NEW: Google Sheets Auth State
-        let googleAuth = null;
-        let gapiInited = false;
-        let gisInited = false;
-        let gapiLoaded = false;
-        let googleUserEmail = null;
-
 
         // --- DOM ELEMENTS ---
         const userStatus = document.getElementById('user-status');
@@ -414,7 +359,6 @@
         const timelineView = document.getElementById('timeline-view');
         const toolsView = document.getElementById('tools-view');
         const pcstoolsView = document.getElementById('pcstools-view'); 
-        const tscHelperView = document.getElementById('tsc-helper-view'); // NEW
         const navTabs = document.querySelectorAll('.tab-btn');
         
         const errorContainer = document.getElementById('error-container');
@@ -430,7 +374,7 @@
         const percentY = document.getElementById('percent-y');
         const percentageResult = document.getElementById('percentage-result');
         
-        // PCS Tools Admin Elements
+        // NEW: PCS Tools Admin Elements
         const toolsAdminPanel = document.getElementById('tools-admin-panel');
         const toolsListContainer = document.getElementById('tools-list-container');
         const toolsLoadingMessage = document.getElementById('tools-loading-message');
@@ -439,55 +383,6 @@
         const toolDescriptionInput = document.getElementById('tool-description-input');
         const toolLinkInput = document.getElementById('tool-link-input');
         const addToolBtn = document.getElementById('add-tool-btn');
-        
-        // NEW: TSC Helper Elements
-        const googleAuthStatus = document.getElementById('google-auth-status');
-        const googleAuthButton = document.getElementById('google-auth-button');
-        const techIdInput = document.getElementById('tech-id-input');
-        const timeSegmentInput = document.getElementById('time-segment-input');
-        const syncToSheetBtn = document.getElementById('sync-to-sheet-btn');
-
-
-        // --- GOOGLE API INITIALIZATION ---
-        
-        window.gapiLoaded = () => {
-            gapiInited = true;
-            gapi.client.init({ apiKey: googleConfig.API_KEY, discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"] })
-                .then(() => {
-                    gapiLoaded = true;
-                    console.log("GAPI client loaded.");
-                    updateTscHelperUI();
-                });
-        }
-        
-        window.gisLoaded = () => {
-            gisInited = true;
-            googleAuth = google.accounts.oauth2.initCodeClient({
-                client_id: googleConfig.CLIENT_ID,
-                scope: googleConfig.SCOPES,
-                callback: (tokenResponse) => {
-                    if (tokenResponse.error) {
-                        handleError('Google Auth Failed: ' + tokenResponse.error);
-                        return;
-                    }
-                    gapi.client.setToken({ access_token: tokenResponse.access_token });
-                    loadUserInfoAndToggleSheetStatus();
-                },
-            });
-            console.log("GIS client loaded.");
-            updateTscHelperUI();
-        }
-
-        // Load the GIS client library for authorization
-        function loadGis() {
-            const script = document.createElement('script');
-            script.src = 'https://accounts.google.com/gsi/client';
-            script.onload = window.gisLoaded;
-            document.head.appendChild(script);
-        }
-
-        // Call both GAPI and GIS initialization (ensure gapi is loaded first)
-        loadGis();
 
 
         // --- AUTH & INITIALIZATION ---
@@ -520,148 +415,13 @@
             }
             lucide.createIcons();
             updateAdminUI();
-            updateTscHelperUI(); // NEW
         });
-
-        // --- GOOGLE SHEETS AUTH/SYNC LOGIC ---
-        
-        async function loadUserInfoAndToggleSheetStatus() {
-            try {
-                const response = await gapi.client.request({
-                    path: 'https://www.googleapis.com/oauth2/v2/userinfo',
-                    method: 'GET'
-                });
-                googleUserEmail = response.result.email;
-                googleAuthStatus.classList.remove('bg-red-50', 'dark:bg-red-900/20', 'border-red-200', 'dark:border-red-800');
-                googleAuthStatus.classList.add('bg-green-50', 'dark:bg-green-900/20', 'border-green-200', 'dark:border-green-800');
-                googleAuthStatus.innerHTML = `
-                    <span>Sheet access granted for: <strong>${googleUserEmail}</strong></span>
-                    <button id="google-auth-button" class="px-3 py-1 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg text-xs hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">Sign Out</button>
-                `;
-                syncToSheetBtn.disabled = false;
-                handleSuccess("Google Sheets access granted.");
-            } catch (error) {
-                console.error("Error loading user info:", error);
-                toggleSheetStatus(false);
-                handleError("Failed to load user email. Please try authorizing again.");
-            }
-            lucide.createIcons();
-        }
-        
-        function toggleSheetStatus(isAuthorized) {
-            googleUserEmail = null;
-            if (isAuthorized) {
-                // This is now handled by loadUserInfoAndToggleSheetStatus after successful auth
-            } else {
-                googleAuthStatus.classList.remove('bg-green-50', 'dark:bg-green-900/20', 'border-green-200', 'dark:border-green-800');
-                googleAuthStatus.classList.add('bg-red-50', 'dark:bg-red-900/20', 'border-red-200', 'dark:border-red-800');
-                googleAuthStatus.innerHTML = `
-                    <span>Sheet access not granted.</span>
-                    <button id="google-auth-button" class="px-3 py-1 bg-red-600 text-white rounded-lg text-xs hover:bg-red-700 transition-colors">Authorize Access</button>
-                `;
-                syncToSheetBtn.disabled = true;
-            }
-            lucide.createIcons();
-        }
-
-        function updateTscHelperUI() {
-            if (currentView === 'tsc-helper') {
-                // Initial check and setup for the TSC Helper view
-                if (!gapiLoaded || !gisInited) {
-                    googleAuthStatus.innerHTML = `<span>Loading Google API components...</span>`;
-                    syncToSheetBtn.disabled = true;
-                    return;
-                }
-                
-                // If gapi and gis are ready, check current token/email status
-                if (!googleUserEmail) {
-                    toggleSheetStatus(false); // Display "Authorize Access"
-                } else {
-                    // Re-render authorized state if email is known
-                    loadUserInfoAndToggleSheetStatus();
-                }
-            }
-        }
-        
-        async function writeToSheet() {
-            if (!googleUserEmail) {
-                return handleError("Please authorize Google Sheets access first.");
-            }
-            
-            const techId = techIdInput.value.trim();
-            const segmentData = timeSegmentInput.value.trim();
-
-            if (!techId) return handleError("Tech ID is required.");
-            if (!segmentData) return handleError("Time Segments cannot be empty.");
-            
-            syncToSheetBtn.disabled = true;
-            syncToSheetBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Syncing...</span>';
-            lucide.createIcons();
-
-            try {
-                const now = new Date().toLocaleString();
-                const segments = segmentData.split('\n').filter(line => line.trim() !== '');
-
-                const values = segments.map(segment => {
-                    // Each row in the sheet: [Timestamp, Tech ID, User Email, Segment Text]
-                    return [now, techId, googleUserEmail, segment.trim()];
-                });
-                
-                const response = await gapi.client.sheets.spreadsheets.values.append({
-                    spreadsheetId: googleConfig.SPREADSHEET_ID,
-                    // NOTE: This assumes the target sheet is the first one, or you need to specify a sheet name (e.g., 'Sheet1!A:D')
-                    range: 'A1', 
-                    valueInputOption: 'USER_ENTERED',
-                    resource: {
-                        values: values,
-                    },
-                });
-
-                if (response.result.updates.updatedRows > 0) {
-                    handleSuccess(`${response.result.updates.updatedRows} time segments synced successfully!`);
-                    timeSegmentInput.value = ''; // Clear input on success
-                } else {
-                    handleError("Sync failed: No rows were updated.");
-                }
-
-            } catch (error) {
-                console.error("Sheets API Error:", error);
-                if (error.result && error.result.error && error.result.error.message) {
-                    handleError(`Sheets API Error: ${error.result.error.message}`);
-                } else {
-                    handleError("An unexpected error occurred during sync. Check console for details.");
-                }
-            } finally {
-                syncToSheetBtn.disabled = false;
-                syncToSheetBtn.innerHTML = '<i data-lucide="upload-cloud" class="w-4 h-4"></i><span>Sync to Sheet</span>';
-                lucide.createIcons();
-            }
-        }
-        
-        googleAuthButton.addEventListener('click', () => {
-            if (googleUserEmail) {
-                // Sign out logic (clearing local token/state)
-                gapi.client.setToken(null);
-                toggleSheetStatus(false);
-                handleSuccess("Google Sheets access revoked.");
-            } else {
-                // Authorize logic
-                if (googleAuth) {
-                    googleAuth.requestCode();
-                } else {
-                    handleError("Google Auth client not initialized.");
-                }
-            }
-        });
-
-        syncToSheetBtn.addEventListener('click', writeToSheet);
-
 
         // --- UI/VIEW MANAGEMENT ---
 
         function switchView(viewName) {
             currentView = viewName;
-            [timelineView, toolsView, pcstoolsView, tscHelperView].forEach(view => { // NEW VIEW
+            [timelineView, toolsView, pcstoolsView].forEach(view => {
                 view.classList.toggle('hidden', view.id !== `${viewName}-view`);
             });
             navTabs.forEach(tab => {
@@ -675,10 +435,6 @@
             
             if (viewName === 'pcstools') {
                 updateToolsAdminPanel(); 
-            }
-            
-            if (viewName === 'tsc-helper') { // NEW VIEW INIT
-                updateTscHelperUI();
             }
             
             lucide.createIcons();
@@ -1286,7 +1042,7 @@
             if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
                 scrollToTopBtn.classList.add('opacity-100', 'pointer-events-auto');
             } else {
-                scrollToToBtn.classList.remove('opacity-100', 'pointer-events-auto');
+                scrollToTopBtn.classList.remove('opacity-100', 'pointer-events-auto');
             }
         };
         scrollToTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
@@ -1325,8 +1081,6 @@
         calculateDecimalTime(); 
         calculatePercentage();
         lucide.createIcons();
-        // Manually trigger gapi load after <body> has loaded
-        window.gapi.load('client', window.gapiLoaded);
     </script>
 </body>
 </html>
