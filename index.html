@@ -66,6 +66,7 @@
                     <i data-lucide="moon" class="w-5 h-5 hidden dark:inline"></i>
                 </button>
                 <div id="admin-status" class="text-xs font-medium text-red-500"></div>
+                <!-- Admin Login Button: Now uses a standard JS listener to open the modal -->
                 <button id="login-btn" class="px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded-full text-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">Admin Login</button>
                 <div id="user-status" class="h-8 w-8 rounded-full bg-gray-200 animate-pulse" title="Anonymous User"></div>
             </div>
@@ -73,6 +74,7 @@
 
         <!-- Navigation Tabs -->
         <div id="nav-tabs" class="flex border-b border-gray-200 dark:border-gray-800 mb-6">
+            <!-- Tab buttons: Functionality attached via JS listener -->
             <button data-view="timeline" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400">Timeline</button>
             <button data-view="tools" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Tools</button>
         </div>
@@ -352,7 +354,7 @@
             currentView = viewName;
             
             [timelineView, toolsView].forEach(view => {
-                view.classList.toggle('hidden', view.id !== `${viewName}-view');
+                view.classList.toggle('hidden', view.id !== `${viewName}-view`);
             });
 
             navTabs.forEach(tab => {
@@ -390,7 +392,7 @@
                 adminStatus.classList.remove('text-green-500', 'font-bold');
                 adminStatus.classList.add('text-red-500');
                 loginBtn.textContent = 'Admin Login';
-                loginBtn.onclick = () => loginModal.classList.remove('hidden');
+                loginBtn.onclick = () => loginModal.classList.remove('hidden'); 
             }
             applySearchFilter(); // Re-render to show/hide edit/delete buttons
         }
@@ -414,6 +416,15 @@
             adminPass.value = 'admin';
             updateAdminUI();
         }
+
+        loginBtn.addEventListener('click', () => {
+             // This listener handles both Login (showing modal) and Logout (handleLogout)
+             if (!isAdmin) {
+                loginModal.classList.remove('hidden');
+             } else {
+                handleLogout();
+             }
+        });
 
         submitLoginBtn.addEventListener('click', handleLogin);
         closeModalBtn.addEventListener('click', () => loginModal.classList.add('hidden'));
@@ -490,7 +501,6 @@
                 return;
             }
             
-            // FIX: Safely retrieve currentUser.uid for function calls in the template
             const currentUserId = currentUser ? currentUser.uid : 'temp-anon-user';
 
             feedContainer.innerHTML = currentPosts.map(post => {
@@ -498,7 +508,7 @@
                 const postReactions = post.reactions;
                 const reactionCount = Object.keys(postReactions).length;
                 const hasReacted = currentUserId !== 'temp-anon-user' && postReactions[currentUserId];
-
+                
                 // Post Content (Edit Mode vs. View Mode)
                 const postContentHtml = isCurrentEditing
                     ? `
@@ -511,16 +521,17 @@
                         ${post.link ? renderMedia(post.link) : ''}
                       `;
 
-                // Admin Buttons - FIXED: Enclosing boolean/string arguments in quotes for safety
+                // Admin Buttons - Using data-attributes for event delegation
                 const adminButtons = isAdmin ? `
                     <div class="flex gap-2">
-                        <button onclick="toggleEdit('${post.id}', '${isCurrentEditing}')" 
+                        <button data-action="${isCurrentEditing ? 'save-edit' : 'edit-post'}" 
+                            data-post-id="${post.id}"
                             class="p-1 text-xs font-medium rounded-md ${isCurrentEditing ? 'bg-green-600 text-white hover:bg-green-700' : 'text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'}">
                             <i data-lucide="${isCurrentEditing ? 'save' : 'edit'}" class="w-3 h-3 mr-1 inline"></i>
                             ${isCurrentEditing ? 'Save' : 'Edit'}
                         </button>
                         ${!isCurrentEditing ? `
-                            <button onclick="deletePost('${post.id}')" class="p-1 text-xs font-medium rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
+                            <button data-action="delete-post" data-post-id="${post.id}" class="p-1 text-xs font-medium rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
                                 <i data-lucide="trash-2" class="w-3 h-3 mr-1 inline"></i>
                                 Delete
                             </button>
@@ -528,9 +539,11 @@
                     </div>
                 ` : '';
 
-                // Reaction Button - FIXED: All args are strings (postId, currentUserId, hasReacted status)
+                // Reaction Button - Using data-attributes for event delegation
                 const reactionButton = `
-                    <button onclick="toggleReaction('${post.id}', '${currentUserId}', '${hasReacted ? 'true' : 'false'}')"
+                    <button data-action="toggle-reaction" 
+                            data-post-id="${post.id}" 
+                            data-reacted="${hasReacted}"
                             class="flex items-center gap-1.5 p-1 px-2 text-sm rounded-full transition-colors ${hasReacted ? 'bg-red-500 text-white hover:bg-red-600' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'}">
                         <i data-lucide="heart" class="w-4 h-4 fill-current ${hasReacted ? '' : 'fill-none'}"></i>
                         <span class="font-medium">${reactionCount}</span>
@@ -597,6 +610,37 @@
             }
         }
 
+        // --- EVENT DELEGATION FOR TIMELINE ACTIONS (NEW ROBUST FIX) ---
+        feedContainer.addEventListener('click', (e) => {
+            const target = e.target.closest('[data-action]');
+            if (!target) return;
+
+            const action = target.dataset.action;
+            const postId = target.dataset.postId;
+            const hasReacted = target.dataset.reacted === 'true'; // Get boolean from data-attribute
+            const currentUserId = currentUser ? currentUser.uid : null;
+
+            if (!currentUserId) {
+                 handleError("Cannot perform action. User authentication is required or pending.");
+                 return;
+            }
+
+            switch(action) {
+                case 'toggle-reaction':
+                    toggleReaction(postId, currentUserId, hasReacted);
+                    break;
+                case 'edit-post':
+                    toggleEdit(postId, false); // false = not currently editing (start edit)
+                    break;
+                case 'save-edit':
+                    toggleEdit(postId, true); // true = currently editing (save edit)
+                    break;
+                case 'delete-post':
+                    deletePost(postId);
+                    break;
+            }
+        });
+
 
         // Add New Post
         submitBtn.addEventListener('click', async () => {
@@ -645,13 +689,12 @@
         });
 
         // Toggle Reaction
-        window.toggleReaction = async (postId, userId, hasReactedString) => {
+        const toggleReaction = async (postId, userId, hasReacted) => {
             if (!userId || userId === 'temp-anon-user') {
                 handleError("Cannot react. User authentication is required or pending.");
                 return;
             }
             
-            const hasReacted = hasReactedString === 'true';
             const docRef = doc(db, COLLECTION_NAME, postId);
             
             try {
@@ -677,9 +720,8 @@
 
 
         // Toggle Edit State
-        window.toggleEdit = async (id, currentlyEditingString) => {
+        const toggleEdit = async (id, currentlyEditing) => {
             if (!isAdmin) return;
-            const currentlyEditing = currentlyEditingString === 'true';
 
             if (currentlyEditing) {
                 // Save logic
@@ -717,7 +759,7 @@
         };
 
         // Delete Post
-        window.deletePost = async (id) => {
+        const deletePost = async (id) => {
             if (!isAdmin) return;
             try {
                 await deleteDoc(doc(db, COLLECTION_NAME, id));
@@ -859,6 +901,9 @@
         
         function escapeHtml(text) {
             if (!text) return text;
+            // The string must use a placeholder for double quotes for the HTML injection, but
+            // for standard innerText contexts, simply escaping is fine. Since this is used
+            // for value attributes and inner HTML, this escape function remains necessary.
             return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
