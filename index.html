@@ -24,6 +24,52 @@
         }
     </script>
  <style>
+     /* Utility Button Styles */
+    #tsc-helper-view .util-button {
+        padding: 0.5rem 1rem; 
+        border-radius: 0.375rem; 
+        font-weight: 600; 
+        transition: background-color 0.15s;
+    }
+
+    /* Primary Blue Button (Default/Light Mode) */
+    #tsc-helper-view .util-button.primary {
+        background-color: #2563eb; /* blue-600 */
+        color: white;
+    }
+    #tsc-helper-view .util-button.primary:hover {
+        background-color: #1d4ed8; /* blue-700 */
+    }
+    /* Dark Mode Primary Blue Button */
+    .dark #tsc-helper-view .util-button.primary {
+        background-color: #3b82f6; /* blue-500 */
+    }
+    .dark #tsc-helper-view .util-button.primary:hover {
+        background-color: #2563eb; /* blue-600 */
+    }
+    
+    /* Secondary/Default Utility Button (Light Mode FIX) */
+    /* Many of your utility buttons (Copy, Settings, Clear Data) likely fall back to this style. */
+    #tsc-helper-view .util-button.secondary,
+    #tsc-helper-view .util-button:not(.primary) { /* This targets buttons without an explicit .primary class */
+        background-color: #f3f4f6; /* FIX: light gray background */
+        color: #1f2937; /* FIX: dark gray text */
+    }
+    #tsc-helper-view .util-button.secondary:hover,
+    #tsc-helper-view .util-button:not(.primary):hover {
+        background-color: #e5e7eb; /* FIX: slightly darker light gray on hover */
+    }
+    
+    /* Dark Mode Secondary/Default Utility Button */
+    .dark #tsc-helper-view .util-button.secondary,
+    .dark #tsc-helper-view .util-button:not(.primary) {
+        background-color: #374151; /* gray-700 */
+        color: #f3f4f6; /* gray-100 */
+    }
+    .dark #tsc-helper-view .util-button.secondary:hover,
+    .dark #tsc-helper-view .util-button:not(.primary):hover {
+        background-color: #4b5563; /* gray-600 */
+    }
     body { font-family: 'Inter', sans-serif; }
     /* Adjusted timeline-dot ring color for better contrast */
     .timeline-dot {
