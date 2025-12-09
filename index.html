@@ -23,7 +23,7 @@
             }
         }
     </script>
-    <style>
+ <style>
     body { font-family: 'Inter', sans-serif; }
     /* Adjusted timeline-dot ring color for better contrast */
     .timeline-dot {
@@ -40,53 +40,8 @@
         -webkit-appearance: none;
         margin: 0;
     }
-    /* Keyframes for flash effect on empty post click */
-    @keyframes flash-red {
-        0%, 100% { border-color: rgb(229 231 235); }
-        50% { border-color: rgb(239 68 68); }
-    }
-    .flash-red {
-        animation: flash-red 0.5s ease-in-out;
-    }
-    .tag-pill.selected {
-        background-color: #2563eb; /* blue-600 */
-        color: white;
-        border-color: #2563eb;
-    }
-    .dark .tag-pill.selected {
-        background-color: #3b82f6; /* blue-500 */
-        color: white;
-        border-color: #3b82f6;
-    }
-    /* Custom scrollbar for better aesthetics */
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-        background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-        background-color: #cbd5e1;
-        border-radius: 4px;
-    }
-    .dark ::-webkit-scrollbar-thumb {
-        background-color: #334155;
-    }
     
-    /* Restored: Timeline Structure Enhancement */
-    #posts-feed {
-        /* Add a persistent left border to the whole feed container */
-        border-left: 1px solid #e5e7eb; /* gray-200 */
-    }
-    .dark #posts-feed {
-         border-left: 1px solid #1f2937; /* gray-800 */
-    }
-    .post-container {
-        /* Reset the left border on individual posts */
-        border-left: none !important;
-    }
-
-    /* --- TSC HELPER STYLES (SCOPED) --- */
+/* --- TSC HELPER STYLES (SCOPED) --- */
     #tsc-helper-view .container-wrapper {
         display: flex;
         justify-content: center;
@@ -94,124 +49,228 @@
         min-height: calc(100vh - 100px); /* Adjusting for header */
         padding: 1rem;
     }
-    /* Updated dark mode colors to match gray-900 (111827) background and gray-100 (f3f4f6) text */
+    /* Ensure h2/h3 text is dark in Light Mode (default) and light in Dark Mode */
+    #tsc-helper-view h2, #tsc-helper-view h3 { color: inherit; /* Inherit from body (gray-900 in Light mode) */ }
     .dark #tsc-helper-view h2, .dark #tsc-helper-view h3 { color: #f3f4f6; } 
-    .dark #tsc-helper-view .container {
-        background-color: #111827; /* gray-900: Matches timeline card/feed background */
+
+    /* Define Light Mode container styles (inherits body background, but set a light border/shadow) */
+    #tsc-helper-view .container {
+        background-color: white; /* Explicitly white for Light Mode */
         padding: 2.5rem;
         border-radius: 0.75rem;
-        border: 1px solid #1f2937; /* gray-800: Matches timeline borders */
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+        border: 1px solid #e5e7eb; /* gray-200 border */
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
         text-align: center;
         width: 100%;
         max-width: 1400px;
     }
+    /* Dark Mode Container */
+    .dark #tsc-helper-view .container {
+        background-color: #111827; /* gray-900: Matches timeline card/feed background */
+        border: 1px solid #1f2937; /* gray-800: Matches timeline borders */
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* FIX 1: Table Borders and Structure (Default/Light Mode) */
     #tsc-helper-view .time-table {
         width: 100%;
         border-collapse: collapse;
         margin-bottom: 1.5rem;
-        border: 1px solid #1f2937; /* gray-800 */
+        border: 1px solid #d1d5db; /* Light Mode: gray-300 border */
         border-radius: 0.5rem;
         overflow: hidden;
         font-size: 0.9rem;
     }
+    /* Dark Mode Table Borders and Structure */
+    .dark #tsc-helper-view .time-table {
+         border: 1px solid #1f2937; /* Dark Mode: gray-800 border */
+    }
+
     #tsc-helper-view .time-table th, #tsc-helper-view .time-table td {
         padding: 0.5rem 0.75rem;
         text-align: left;
-        border-bottom: 1px solid #1f2937; /* gray-800 */
+        border-bottom: 1px solid #d1d5db; /* Light Mode: gray-300 border */
         vertical-align: middle;
     }
+    /* Dark Mode Table Cell Bottom Border */
+    .dark #tsc-helper-view .time-table th, .dark #tsc-helper-view .time-table td {
+        border-bottom: 1px solid #1f2937; /* Dark Mode: gray-800 border */
+    }
+
+    /* FIX 2: Table Header (th) Colors (Default/Light Mode) */
     #tsc-helper-view .time-table th {
-        background-color: #1f2937; /* gray-800: Darker header background */
-        color: #f3f4f6; /* gray-100 */
+        background-color: #f3f4f6; /* Light Mode: gray-100 header background */
+        color: #111827; /* Light Mode: dark text */
         font-weight: 600;
     }
-    #tsc-helper-view .time-table td { font-family: monospace; font-size: 0.95rem; color: #d1d5db; /* gray-300 */ }
+    /* Dark Mode Table Header (th) Colors */
+    .dark #tsc-helper-view .time-table th {
+        background-color: #1f2937; /* Dark Mode: gray-800 header background (Original) */
+        color: #f3f4f6; /* Dark Mode: gray-100 text (Original) */
+    }
+    
+    /* FIX 3: Table Data (td) Text Color (Default/Light Mode) */
+    #tsc-helper-view .time-table td { 
+        font-family: monospace; 
+        font-size: 0.95rem; 
+        color: #4b5563; /* New: gray-600 text for light mode */
+    }
+    /* Dark Mode Table Data (td) Text Color */
+    .dark #tsc-helper-view .time-table td { 
+        color: #d1d5db; /* Original: light gray text for dark mode */ 
+    }
+    
     #tsc-helper-view .time-table tbody tr:last-child td { border-bottom: none; }
-    #tsc-helper-view .time-table tbody tr:hover { background-color: #1f2937; /* gray-800: Consistent hover state */ }
+    
+    /* FIX 4: Table Row Hover State (Default/Light Mode) */
+    #tsc-helper-view .time-table tbody tr:hover { 
+        background-color: #f9fafb; /* Light Mode: gray-50 hover state */ 
+    }
+    /* Dark Mode Table Row Hover State */
+    .dark #tsc-helper-view .time-table tbody tr:hover { 
+        background-color: #1f2937; /* Original: gray-800 hover state */ 
+    }
+    
+    /* FIX 5: Select Dropdown in Table (Default/Light Mode) */
     #tsc-helper-view .time-table select {
-        width: 100%; background-color: #111827; /* gray-900: Matches container bg */ color: #f3f4f6; /* gray-100 */
-        border: 1px solid #374151; /* gray-700 */ border-radius: 0.375rem; padding: 0.35rem;
-        font-family: "Inter", sans-serif; font-size: 0.85rem;
+        width: 100%; 
+        background-color: white; /* New: white background */
+        color: #111827; /* New: dark text */
+        border: 1px solid #d1d5db; /* New: light border */ 
+        border-radius: 0.375rem; 
+        padding: 0.35rem;
+        font-family: "Inter", sans-serif; 
+        font-size: 0.85rem;
+    }
+    /* Dark Mode Select Dropdown in Table */
+    .dark #tsc-helper-view .time-table select {
+        background-color: #111827; /* Original: dark background */
+        color: #f3f4f6; /* Original: light text */
+        border: 1px solid #374151; /* Original: dark border */
     }
     #tsc-helper-view .time-table select:focus {
         outline: none; border-color: #2563eb; /* blue-600 */
         box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4);
     }
+
+    /* FIX 6: Editable Date Input in Table (Default/Light Mode) */
     #tsc-helper-view .time-table input.editable-date {
         background-color: transparent;
         border: none;
-        color: #d1d5db; /* gray-300 */
+        color: #4b5563; /* New: dark text for light mode */
         padding: 0;
         font-size: 0.95rem;
         font-family: monospace;
         width: 100%;
     }
+    /* Dark Mode Editable Date Input in Table */
+    .dark #tsc-helper-view .time-table input.editable-date {
+        color: #d1d5db; /* Original: light text for dark mode */
+    }
     #tsc-helper-view .time-table input.editable-date:focus {
-        background-color: #1f2937; /* gray-800 */
+        background-color: #f3f4f6; /* New: light background on focus */
         outline: 1px solid #2563eb; /* blue-600 */
         border-radius: 2px;
     }
-    #tsc-helper-view .button-remove {
-        background-color: #be123c; color: white;
-        padding: 0.3rem 0.6rem; border-radius: 0.25rem;
-        font-size: 0.75rem; font-weight: 600; cursor: pointer;
-        border: none; transition: background-color 0.2s;
+    /* Dark Mode Editable Date Input Focus */
+    .dark #tsc-helper-view .time-table input.editable-date:focus {
+        background-color: #1f2937; /* Original: dark background on focus */
     }
-    #tsc-helper-view .button-remove:hover { background-color: #9f1239; }
-    #tsc-helper-view .button {
-        padding: 0.75rem 1.5rem; margin: 0.5rem; border-radius: 0.375rem;
-        cursor: pointer; font-size: 1rem; font-weight: 500;
-        transition: all 0.2s ease-in-out; border: none;
-    }
-    #tsc-helper-view .button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    }
-    /* Updated Primary Button to blue-600 and blue-700 hover */
-    #tsc-helper-view .button-primary { background-color: #2563eb; color: white; }
-    #tsc-helper-view .button-primary:hover { background-color: #1d4ed8; }
-    /* Updated Secondary Button to gray-800 and gray-700 hover */
-    #tsc-helper-view .button-secondary { background-color: #1f2937; color: #f3f4f6; }
-    #tsc-helper-view .button-secondary:hover { background-color: #374151; }
-    #tsc-helper-view .message-box {
-        margin-top: 1.5rem; padding: 0.85rem; border-radius: 0.375rem;
-        font-weight: 500; visibility: hidden; opacity: 0;
-        transition: opacity 0.3s ease-in-out;
-    }
-    #tsc-helper-view .message-box.visible { visibility: visible; opacity: 1; }
-    /* Kept green/red colors for success/error messages */
-    #tsc-helper-view .message-box:not(.error) { background-color: #166534; color: #dcfce7; border: 1px solid #22c55e; }
-    #tsc-helper-view .message-box.error { background-color: #991b1b; color: #fee2e2; border: 1px solid #f87171; }
+
+    /* Modal Styles */
     #tsc-helper-view .modal {
-        display: none; position: fixed; z-index: 1000; left: 0; top: 0;
-        width: 100%; height: 100%; overflow: auto;
-        background-color: rgba(0,0,0,0.75);
-        justify-content: center; align-items: center;
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.6); display: none; 
+        justify-content: center; align-items: center; z-index: 100;
     }
     #tsc-helper-view .modal-content {
-        background-color: #111827; /* gray-900: Matches container bg */ margin: auto; padding: 2rem;
-        border: 1px solid #1f2937; /* gray-800: Matches container border */ width: 90%;
-        border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-        position: relative;
+        padding: 1.5rem; border-radius: 0.5rem; width: 90%; max-width: 400px;
     }
-    #tsc-helper-view .close-button {
-        color: #9ca3af; font-size: 28px; font-weight: bold;
-        position: absolute; top: 15px; right: 25px;
-        cursor: pointer; transition: color 0.2s ease;
+    /* Light Mode Modal Content */
+    #tsc-helper-view .modal-content {
+        background-color: white; 
+        border: 1px solid #d1d5db; 
+        color: #111827;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     }
-    .dark #tsc-helper-view .close-button:hover, .dark #tsc-helper-view .close-button:focus { color: #f3f4f6; }
-    #tsc-helper-view .form-group { margin-bottom: 1rem; }
-    #tsc-helper-view .form-group label { display: block; font-size: 0.875rem; font-weight: 500; color: #d1d5db; /* gray-300 */ margin-bottom: 0.5rem; text-align: left; }
-    #tsc-helper-view .form-group input, #tsc-helper-view .form-group select {
-        width: 100%; background-color: #111827; /* gray-900: Matches container bg */ color: #f3f4f6; /* gray-100 */
-        border: 1px solid #1f2937; /* gray-800: Matches container border */ border-radius: 0.375rem; padding: 0.5rem 0.75rem;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    /* Dark Mode Modal Content */
+    .dark #tsc-helper-view .modal-content {
+        background-color: #1f2937; 
+        border: 1px solid #374151; 
+        color: #f3f4f6;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
     }
-    #tsc-helper-view input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); }
-    #tsc-helper-view .form-group input:focus, #tsc-helper-view .form-group select:focus {
-        outline: none; border-color: #2563eb; /* blue-600 */
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4);
+
+    /* Modal Form Styles (Ensuring proper light mode background/text) */
+    #tsc-helper-view .modal label {
+        display: block; margin-bottom: 0.5rem; font-weight: 500;
+        color: #374151; /* Light Mode Text */
+    }
+    .dark #tsc-helper-view .modal label {
+        color: #d1d5db; /* Dark Mode Text */
+    }
+    #tsc-helper-view .modal input[type="text"], #tsc-helper-view .modal input[type="time"], #tsc-helper-view .modal select {
+        width: 100%; padding: 0.5rem; margin-bottom: 1rem; border-radius: 0.375rem;
+    }
+    /* Light Mode Input/Select */
+    #tsc-helper-view .modal input[type="text"], #tsc-helper-view .modal input[type="time"], #tsc-helper-view .modal select {
+        background-color: white;
+        border: 1px solid #d1d5db;
+        color: #111827;
+    }
+    /* Dark Mode Input/Select */
+    .dark #tsc-helper-view .modal input[type="text"], .dark #tsc-helper-view .modal input[type="time"], .dark #tsc-helper-view .modal select {
+        background-color: #374151; 
+        border: 1px solid #4b5563; 
+        color: #f3f4f6;
+    }
+    #tsc-helper-view .modal button {
+        padding: 0.5rem 1rem; border-radius: 0.375rem; margin-right: 0.5rem; font-weight: 600;
+    }
+    #tsc-helper-view #scheduleErrorMessage {
+        color: #ef4444; /* red-500 */
+        margin-top: 0.5rem;
+    }
+
+    /* Utility Button Styles */
+    #tsc-helper-view .util-button {
+        padding: 0.5rem 1rem; 
+        border-radius: 0.375rem; 
+        font-weight: 600; 
+        transition: background-color 0.15s;
+    }
+
+    /* Primary Blue Button (Default/Light Mode) */
+    #tsc-helper-view .util-button.primary {
+        background-color: #2563eb; /* blue-600 */
+        color: white;
+    }
+    #tsc-helper-view .util-button.primary:hover {
+        background-color: #1d4ed8; /* blue-700 */
+    }
+    /* Dark Mode Primary Blue Button */
+    .dark #tsc-helper-view .util-button.primary {
+        background-color: #3b82f6; /* blue-500 */
+    }
+    .dark #tsc-helper-view .util-button.primary:hover {
+        background-color: #2563eb; /* blue-600 */
+    }
+    
+    /* Secondary/Cancel Button (Default/Light Mode) */
+    #tsc-helper-view .util-button.secondary {
+        background-color: #f3f4f6; /* gray-100 */
+        color: #1f2937; /* gray-800 */
+    }
+    #tsc-helper-view .util-button.secondary:hover {
+        background-color: #e5e7eb; /* gray-200 */
+    }
+    /* Dark Mode Secondary/Cancel Button */
+    .dark #tsc-helper-view .util-button.secondary {
+        background-color: #374151; /* gray-700 */
+        color: #f3f4f6; /* gray-100 */
+    }
+    .dark #tsc-helper-view .util-button.secondary:hover {
+        background-color: #4b5563; /* gray-600 */
     }
 </style>
 </head>
