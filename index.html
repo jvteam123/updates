@@ -3,12 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timeline Updates</title>
+    <title>PCS Updates</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
+        // Set up dark mode based on localStorage or system preference
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+
         tailwind.config = {
             darkMode: 'class',
             theme: {
@@ -21,14 +28,13 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .timeline-dot {
-            box-shadow: 0 0 0 4px #f9fafb; /* Light mode ring */
+            box-shadow: 0 0 0 4px #f9fafb; 
         }
         @media (prefers-color-scheme: dark) {
-            .timeline-dot { box-shadow: 0 0 0 4px #030712; /* Dark mode ring */ }
+            .timeline-dot { box-shadow: 0 0 0 4px #030712; }
         }
-        /* Custom styles for the Time Converter inputs */
         .converter-input {
-            appearance: textfield; /* Remove number arrows in Firefox */
+            appearance: textfield; 
         }
         .converter-input::-webkit-outer-spin-button,
         .converter-input::-webkit-inner-spin-button {
@@ -43,11 +49,15 @@
         <!-- Header & Nav -->
         <header class="mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex-grow">
-                <h1 class="text-2xl font-bold tracking-tight">Timeline Updates</h1>
+                <h1 class="text-2xl font-bold tracking-tight">PCS Updates</h1>
                 <p class="text-gray-500 text-sm mt-1">Maintained via Firestore (HTML Version)</p>
             </div>
             
             <div class="flex items-center gap-4">
+                <button id="dark-mode-toggle" class="p-2 rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" title="Toggle Dark/Light Mode">
+                    <i data-lucide="sun" class="w-5 h-5 dark:hidden"></i>
+                    <i data-lucide="moon" class="w-5 h-5 hidden dark:inline"></i>
+                </button>
                 <div id="admin-status" class="text-xs font-medium text-red-500"></div>
                 <button id="login-btn" class="px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded-full text-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">Admin Login</button>
                 <div id="user-status" class="h-8 w-8 rounded-full bg-gray-200 animate-pulse" title="Anonymous User"></div>
@@ -74,33 +84,50 @@
         </div>
 
         <!-- Error Container -->
-        <div id="error-container" class="hidden mb-6 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-200 p-4 rounded-lg border border-red-200 dark:border-red-800 text-sm flex items-center gap-3">
-            <i data-lucide="alert-circle" class="w-5 h-5"></i>
+        <div id="error-container" class="hidden fixed top-4 right-4 z-50 max-w-sm bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-200 p-4 rounded-lg border border-red-200 dark:border-red-800 text-sm flex items-start gap-3 shadow-lg">
+            <i data-lucide="alert-triangle" class="w-5 h-5 mt-0.5"></i>
             <span id="error-message"></span>
+            <button onclick="document.getElementById('error-container').classList.add('hidden')" class="ml-auto text-red-500 hover:text-red-700">&times;</button>
         </div>
 
         <!-- Timeline View -->
         <div id="timeline-view" class="view">
             <!-- Composer Form -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 mb-8 p-4">
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 mb-6 p-4">
                 <textarea id="post-content" placeholder="What's new?" 
                     class="w-full min-h-[100px] resize-none bg-transparent border-0 focus:ring-0 text-lg placeholder-gray-400 mb-2 outline-none"></textarea>
                 
-                <div id="link-input-container" class="hidden flex items-center gap-2 mb-4 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-md">
-                    <i data-lucide="link" class="w-4 h-4 text-gray-400"></i>
-                    <input type="url" id="link-url" placeholder="https://example.com" 
-                        class="flex-1 bg-transparent border-0 focus:outline-none text-sm">
-                    <button id="close-link-btn" class="text-gray-400 hover:text-gray-600">&times;</button>
+                <div id="meta-input-container" class="space-y-2 mb-4">
+                    <!-- Tag Input -->
+                    <div class="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-md">
+                        <i data-lucide="tag" class="w-4 h-4 text-gray-400"></i>
+                        <input type="text" id="tag-input" placeholder="Optional tag (e.g., Feature, Bug, Announcement)" 
+                            class="flex-1 bg-transparent border-0 focus:outline-none text-sm">
+                    </div>
+                    
+                    <!-- Link/Media Input -->
+                    <div id="link-input-container" class="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-md">
+                        <i data-lucide="image" class="w-4 h-4 text-gray-400"></i>
+                        <input type="url" id="link-url" placeholder="Optional Image/Link URL (e.g., https://i.imgur.com/image.jpg)" 
+                            class="flex-1 bg-transparent border-0 focus:outline-none text-sm">
+                        <button id="clear-link-btn" class="text-gray-400 hover:text-gray-600">&times;</button>
+                    </div>
                 </div>
 
-                <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
-                    <button id="toggle-link-btn" class="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                        <i data-lucide="link" class="w-5 h-5"></i>
-                    </button>
+                <div class="flex items-center justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
                     <button id="submit-btn" class="flex items-center justify-center px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         <span class="mr-2">Post</span>
                         <i data-lucide="send" class="w-4 h-4"></i>
                     </button>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="mb-6">
+                <div class="relative">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                    <input type="text" id="search-input" placeholder="Search timeline updates..." 
+                        class="w-full p-3 pl-10 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
             </div>
 
@@ -140,23 +167,76 @@
                     <p id="decimal-result" class="text-3xl font-bold text-blue-800 dark:text-blue-200 mt-1">8.5</p>
                 </div>
             </div>
+            
+            <!-- Percentage Calculator -->
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 mb-6">
+                <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <i data-lucide="percent" class="w-5 h-5 text-green-500"></i>
+                    Percentage Calculator
+                </h3>
+                <p class="text-sm text-gray-500 mb-4">What is (<span class="font-bold text-green-600">X</span>) % of (<span class="font-bold text-green-600">Y</span>)?</p>
 
-            <!-- Future Tools Placeholder -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 text-center text-gray-400">
-                <p>More tools coming soon!</p>
+                <div class="flex flex-col sm:flex-row gap-4 mb-4 items-center">
+                    <div class="flex-1">
+                        <label for="percent-x" class="block text-xs font-medium text-gray-500 mb-1">X (%)</label>
+                        <input type="number" id="percent-x" placeholder="15" value="15"
+                            class="converter-input w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-center text-lg">
+                    </div>
+                    <span class="text-xl font-bold pt-4 text-gray-500">% of</span>
+                    <div class="flex-1">
+                        <label for="percent-y" class="block text-xs font-medium text-gray-500 mb-1">Y (Total)</label>
+                        <input type="number" id="percent-y" placeholder="200" value="200"
+                            class="converter-input w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-center text-lg">
+                    </div>
+                </div>
+
+                <div class="text-center mt-6 p-4 border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <p class="text-sm text-green-600 dark:text-green-300">Calculation Result:</p>
+                    <p id="percentage-result" class="text-3xl font-bold text-green-800 dark:text-green-200 mt-1">30</p>
+                </div>
+            </div>
+
+            <!-- Simple Unit Converter (C to F) -->
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 mb-6">
+                <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <i data-lucide="thermometer" class="w-5 h-5 text-yellow-500"></i>
+                    Temperature Converter (C $\leftrightarrow$ F)
+                </h3>
+                <p class="text-sm text-gray-500 mb-4">Convert between Celsius and Fahrenheit.</p>
+
+                <div class="flex flex-col sm:flex-row gap-4 mb-4 items-center">
+                    <div class="flex-1">
+                        <label for="celsius-input" class="block text-xs font-medium text-gray-500 mb-1">Celsius ($\degree\text{C}$)</label>
+                        <input type="number" id="celsius-input" placeholder="0" value="0"
+                            class="converter-input w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-center text-lg">
+                    </div>
+                    <i data-lucide="arrow-right-left" class="w-5 h-5 text-gray-500 pt-4"></i>
+                    <div class="flex-1">
+                        <label for="fahrenheit-input" class="block text-xs font-medium text-gray-500 mb-1">Fahrenheit ($\degree\text{F}$)</label>
+                        <input type="number" id="fahrenheit-input" placeholder="32" value="32"
+                            class="converter-input w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-center text-lg">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Scroll to Top Button -->
+    <button id="scroll-to-top" class="fixed bottom-4 right-4 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-opacity duration-300 opacity-0 pointer-events-none z-40">
+        <i data-lucide="arrow-up" class="w-5 h-5"></i>
+    </button>
 
     <!-- Firebase Logic -->
     <script type="module">
         // Updated imports for Firebase v12.x
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js';
         import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
-        import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
+        // Need updateDoc for reactions
+        import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
 
         // --- CONFIGURATION START ---
-        // Updated with user-provided credentials
+        // The __firebase_config variable would normally be used here, but for this standalone example, 
+        // I will define a placeholder config.
         const firebaseConfig = {
             apiKey: "AIzaSyBBcrvThge1YHswamX_pb7KghiCm5ROUH8",
             authDomain: "pcs-updates.firebaseapp.com",
@@ -165,18 +245,21 @@
             messagingSenderId: "424424316130",
             appId: "1:424424316130:web:84f63aab43b4687b08d2bb"
         };
+        // NOTE: In the actual canvas environment, the following block would be used:
+        // const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         // --- CONFIGURATION END ---
 
         // Initialize
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const COLLECTION_NAME = 'posts'; // Simple collection name for standalone
+        const COLLECTION_NAME = 'posts';
 
         // --- STATE MANAGEMENT ---
         let currentUser = null;
         let isAdmin = false;
-        let posts = [];
+        let posts = []; // All posts from Firestore
+        let filteredPosts = []; // Posts currently displayed (after search/filter)
         let editingPostId = null;
         let currentView = 'timeline';
 
@@ -186,10 +269,13 @@
         const submitBtn = document.getElementById('submit-btn');
         const contentInput = document.getElementById('post-content');
         const linkInput = document.getElementById('link-url');
-        const linkContainer = document.getElementById('link-input-container');
-        const toggleLinkBtn = document.getElementById('toggle-link-btn');
-        const closeLinkBtn = document.getElementById('close-link-btn');
+        const tagInput = document.getElementById('tag-input');
+        const clearLinkBtn = document.getElementById('clear-link-btn');
+        const searchInput = document.getElementById('search-input');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const scrollToTopBtn = document.getElementById('scroll-to-top');
         
+        // Modal/Admin elements
         const loginBtn = document.getElementById('login-btn');
         const loginModal = document.getElementById('login-modal');
         const submitLoginBtn = document.getElementById('submit-login-btn');
@@ -202,35 +288,41 @@
         const toolsView = document.getElementById('tools-view');
         const navTabs = document.querySelectorAll('.tab-btn');
         
+        const errorContainer = document.getElementById('error-container');
+        const errorMessage = document.getElementById('error-message');
+
+        // Tool inputs
         const hoursInput = document.getElementById('hours-input');
         const minutesInput = document.getElementById('minutes-input');
         const decimalResult = document.getElementById('decimal-result');
-        const errorContainer = document.getElementById('error-container');
-        const errorMessage = document.getElementById('error-message');
+        const percentX = document.getElementById('percent-x');
+        const percentY = document.getElementById('percent-y');
+        const percentageResult = document.getElementById('percentage-result');
+        const celsiusInput = document.getElementById('celsius-input');
+        const fahrenheitInput = document.getElementById('fahrenheit-input');
 
 
         // --- AUTH & INITIALIZATION ---
 
         signInAnonymously(auth).catch((e) => {
              console.error("Anonymous Sign-in Failed. Ensure Anonymous Auth is enabled in your Firebase Console.", e);
-             handleError("Authentication failed. See console. Did you enable Anonymous Auth in Firebase?");
+             handleError("Authentication failed. Did you enable Anonymous Auth?");
         });
         
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
                 userStatus.className = "h-8 w-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500";
-                userStatus.title = `User: ${user.uid}`;
+                userStatus.title = `User ID: ${user.uid}`;
                 initRealtimeListener();
             } else {
                 currentUser = null;
                 userStatus.className = "h-8 w-8 rounded-full bg-gray-200 animate-pulse";
-                userStatus.title = "Anonymous User (Auth Failed)";
-                // Stop the loading indicator if auth failed
+                userStatus.title = "Anonymous User (Auth Pending/Failed)";
                 feedContainer.innerHTML = `
                     <div class="text-center py-12 text-gray-400">
                         <i data-lucide="alert-triangle" class="w-8 h-8 mx-auto mb-4 text-red-500"></i>
-                        <p class="text-red-500">Failed to load timeline. Check Authentication settings in Firebase Console.</p>
+                        <p class="text-red-500">Waiting for Authentication...</p>
                     </div>`;
                 lucide.createIcons();
             }
@@ -255,6 +347,12 @@
                 tab.classList.toggle('text-gray-500', !isActive);
             });
             lucide.createIcons();
+            // Re-run tool calculations when switching to tools view
+            if (viewName === 'tools') {
+                calculateDecimalTime();
+                calculatePercentage();
+                convertTemperature(celsiusInput, 'C');
+            }
         }
 
         navTabs.forEach(tab => {
@@ -277,7 +375,7 @@
                 loginBtn.textContent = 'Admin Login';
                 loginBtn.onclick = () => loginModal.classList.remove('hidden');
             }
-            renderPosts(posts); // Re-render to show/hide edit/delete buttons
+            applySearchFilter(); // Re-render to show/hide edit/delete buttons
         }
         
         function handleLogin() {
@@ -306,16 +404,27 @@
         // --- FIRESTORE DATA ---
 
         function initRealtimeListener() {
-            // Guard against running listeners before authentication is complete
             if (!currentUser) return;
             
+            // Define the collection path using the provided structure. 
+            // Since this is public data for the app timeline, we'll use the public path, 
+            // but for simplicity in this single file, we use a root collection 'posts'.
+            // In a real environment, you might use: 
+            // const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            // const collectionPath = `/artifacts/${appId}/public/data/${COLLECTION_NAME}`;
+
             onSnapshot(collection(db, COLLECTION_NAME), (snapshot) => {
-                posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                posts = snapshot.docs.map(doc => ({ 
+                    id: doc.id, 
+                    ...doc.data(),
+                    // Ensure reactions is an object for safe access
+                    reactions: doc.data().reactions || {} 
+                }));
                 
                 // Sort by createdAt desc
                 posts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
                 
-                renderPosts(posts);
+                applySearchFilter();
             }, (error) => {
                 console.error(error);
                 if(error.code === 'permission-denied') {
@@ -324,14 +433,38 @@
             });
         }
 
+        // --- SEARCH FUNCTIONALITY ---
+        searchInput.addEventListener('input', applySearchFilter);
+
+        function applySearchFilter() {
+            const query = searchInput.value.toLowerCase().trim();
+            
+            if (query === '') {
+                filteredPosts = posts;
+            } else {
+                filteredPosts = posts.filter(post => 
+                    post.content.toLowerCase().includes(query) || 
+                    (post.link && post.link.toLowerCase().includes(query)) ||
+                    (post.tag && post.tag.toLowerCase().includes(query))
+                );
+            }
+            renderPosts(filteredPosts);
+        }
+
+
         // --- RENDERING & CRUD ---
+
+        function isImageUrl(url) {
+            return (url || '').match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) !== null;
+        }
 
         function renderPosts(currentPosts) {
             if (currentPosts.length === 0) {
+                const message = searchInput.value.trim() ? "No results found for your search." : "No updates yet.";
                 feedContainer.innerHTML = `
                     <div class="text-center py-12 text-gray-400">
-                        <i data-lucide="clock" class="w-8 h-8 mx-auto mb-4 opacity-50"></i>
-                        <p>No updates yet.</p>
+                        <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-4 opacity-50"></i>
+                        <p>${message}</p>
                     </div>`;
                 lucide.createIcons();
                 return;
@@ -339,28 +472,23 @@
 
             feedContainer.innerHTML = currentPosts.map(post => {
                 const isCurrentEditing = editingPostId === post.id;
-                
+                const postReactions = post.reactions;
+                const reactionCount = Object.keys(postReactions).length;
+                const hasReacted = currentUser && postReactions[currentUser.uid];
+
+                // Post Content (Edit Mode vs. View Mode)
                 const postContentHtml = isCurrentEditing
                     ? `
                         <textarea id="edit-content-${post.id}" class="w-full h-32 p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">${escapeHtml(post.content || '')}</textarea>
-                        ${post.link ? `<input type="url" id="edit-link-${post.id}" class="w-full p-2 mt-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="${escapeHtml(post.link)}" placeholder="Link URL">` : ''}
+                        <input type="text" id="edit-tag-${post.id}" class="w-full p-2 mt-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="${escapeHtml(post.tag || '')}" placeholder="Tag">
+                        <input type="url" id="edit-link-${post.id}" class="w-full p-2 mt-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="${escapeHtml(post.link || '')}" placeholder="Link/Image URL">
                       `
                     : `
                         <p class="whitespace-pre-wrap text-base leading-relaxed text-gray-800 dark:text-gray-200">${escapeHtml(post.content)}</p>
-                        ${post.link ? `
-                            <a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer"
-                               class="flex items-center gap-3 p-3 mt-1 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors w-fit max-w-full">
-                                <div class="h-8 w-8 flex items-center justify-center rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shrink-0">
-                                    <i data-lucide="external-link" class="w-4 h-4"></i>
-                                </div>
-                                <div class="overflow-hidden">
-                                    <p class="text-sm font-medium text-blue-600 dark:text-blue-400 truncate">${escapeHtml(post.link)}</p>
-                                    <p class="text-xs text-gray-500">External Link</p>
-                                </div>
-                            </a>
-                        ` : ''}
+                        ${post.link ? renderMedia(post.link) : ''}
                       `;
 
+                // Admin Buttons
                 const adminButtons = isAdmin ? `
                     <div class="flex gap-2">
                         <button onclick="toggleEdit('${post.id}', ${isCurrentEditing})" 
@@ -377,34 +505,83 @@
                     </div>
                 ` : '';
 
+                // Reaction Button
+                const reactionButton = `
+                    <button onclick="toggleReaction('${post.id}', '${currentUser.uid}', ${hasReacted})"
+                            class="flex items-center gap-1.5 p-1 px-2 text-sm rounded-full transition-colors ${hasReacted ? 'bg-red-500 text-white hover:bg-red-600' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'}">
+                        <i data-lucide="heart" class="w-4 h-4 fill-current ${hasReacted ? '' : 'fill-none'}"></i>
+                        <span class="font-medium">${reactionCount}</span>
+                    </button>
+                `;
+
 
                 return `
                     <div class="group relative pl-8 pb-8 last:pb-0 border-l-2 border-gray-200 dark:border-gray-800">
                         <div class="timeline-dot absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-blue-500 border-4 border-gray-50 dark:border-gray-950"></div>
                         
                         <div class="flex flex-col gap-2">
+                            <!-- Header Bar -->
                             <div class="flex items-center justify-between text-xs text-gray-500">
-                                <span class="font-mono">${formatDate(post.createdAt)}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono text-xs text-gray-400" title="Author UID: ${escapeHtml(post.authorId || 'N/A')}">
+                                        ${escapeHtml(post.authorId).substring(0, 8)}...
+                                    </span>
+                                    <span class="text-xs text-gray-500">
+                                        &bull; ${formatRelativeTime(post.createdAt)}
+                                    </span>
+                                    ${post.tag ? `<span class="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-[10px] font-semibold uppercase">${escapeHtml(post.tag)}</span>` : ''}
+                                </div>
                                 ${adminButtons}
                             </div>
 
                             ${postContentHtml}
+                            
+                            <!-- Footer Bar -->
+                            <div class="flex justify-end pt-2">
+                                ${reactionButton}
+                            </div>
                         </div>
                     </div>
                 `;
             }).join('');
             
-            lucide.createIcons(); // Refresh icons
+            lucide.createIcons();
         }
+        
+        function renderMedia(url) {
+            const safeUrl = escapeHtml(url);
+            if (isImageUrl(url)) {
+                return `
+                    <div class="mt-4 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 max-w-full">
+                        <img src="${safeUrl}" alt="Post image" class="w-full h-auto object-cover max-h-96" 
+                             onerror="this.onerror=null; this.src='https://placehold.co/400x200/94a3b8/ffffff?text=Image+Load+Failed'; this.alt='Image not found';">
+                    </div>
+                `;
+            } else {
+                return `
+                    <a href="${safeUrl}" target="_blank" rel="noopener noreferrer"
+                       class="flex items-center gap-3 p-3 mt-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors w-full max-w-sm">
+                        <div class="h-8 w-8 flex items-center justify-center rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shrink-0">
+                            <i data-lucide="external-link" class="w-4 h-4"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <p class="text-sm font-medium text-blue-600 dark:text-blue-400 truncate">${safeUrl}</p>
+                            <p class="text-xs text-gray-500">External Link</p>
+                        </div>
+                    </a>
+                `;
+            }
+        }
+
 
         // Add New Post
         submitBtn.addEventListener('click', async () => {
             const content = contentInput.value.trim();
             const link = linkInput.value.trim();
+            const tag = tagInput.value.trim();
 
             if (!content && !link) return;
 
-            // NEW CHECK: Prevent posting if authentication failed
             if (!currentUser || !currentUser.uid) {
                 handleError("Cannot post. Authentication failed. Please enable Anonymous Auth in Firebase Console.");
                 return;
@@ -415,15 +592,18 @@
             lucide.createIcons();
 
             try {
+                // Using the root collection 'posts' for simplicity in this artifact
                 await addDoc(collection(db, COLLECTION_NAME), {
                     content,
                     link,
+                    tag,
                     authorId: currentUser.uid,
-                    createdAt: serverTimestamp()
+                    createdAt: serverTimestamp(),
+                    reactions: {} // Initialize reactions field
                 });
                 contentInput.value = '';
                 linkInput.value = '';
-                linkContainer.classList.add('hidden');
+                tagInput.value = '';
             } catch (err) {
                 handleError("Failed to post update. Check console for Firestore rules issues.");
                 console.error(err);
@@ -434,6 +614,37 @@
             }
         });
 
+        // Toggle Reaction
+        window.toggleReaction = async (postId, userId, hasReacted) => {
+            if (!userId) {
+                handleError("Cannot react. User authentication is required.");
+                return;
+            }
+            
+            const docRef = doc(db, COLLECTION_NAME, postId);
+            
+            try {
+                // Find the current post data to safely update the reactions map
+                const post = posts.find(p => p.id === postId);
+                if (!post) return;
+
+                let newReactions = { ...post.reactions };
+                
+                if (hasReacted) {
+                    delete newReactions[userId];
+                } else {
+                    newReactions[userId] = true;
+                }
+
+                await updateDoc(docRef, { reactions: newReactions });
+
+            } catch (e) {
+                handleError("Failed to update reaction.");
+                console.error(e);
+            }
+        };
+
+
         // Toggle Edit State
         window.toggleEdit = async (id, currentlyEditing) => {
             if (!isAdmin) return;
@@ -441,20 +652,26 @@
             if (currentlyEditing) {
                 // Save logic
                 const newContent = document.getElementById(`edit-content-${id}`).value.trim();
-                const newLinkEl = document.getElementById(`edit-link-${id}`);
-                const newLink = newLinkEl ? newLinkEl.value.trim() : '';
+                const newLink = document.getElementById(`edit-link-${id}`).value.trim();
+                const newTag = document.getElementById(`edit-tag-${id}`).value.trim();
+
+                const originalPost = posts.find(p => p.id === id);
+                if (!originalPost) return;
                 
                 try {
+                    // Use setDoc to overwrite with the full data while preserving essential fields
                     await setDoc(doc(db, COLLECTION_NAME, id), { 
                         content: newContent, 
                         link: newLink,
+                        tag: newTag,
                         // Preserve original fields
-                        authorId: posts.find(p => p.id === id).authorId,
-                        createdAt: posts.find(p => p.id === id).createdAt
+                        authorId: originalPost.authorId,
+                        createdAt: originalPost.createdAt,
+                        reactions: originalPost.reactions // Preserve reactions
                     });
 
                     editingPostId = null;
-                    renderPosts(posts);
+                    applySearchFilter();
                 } catch (e) {
                     handleError("Failed to save post.");
                     console.error(e);
@@ -463,25 +680,25 @@
             } else {
                 // Edit mode
                 editingPostId = id;
-                renderPosts(posts);
+                applySearchFilter();
             }
         };
 
         // Delete Post
         window.deletePost = async (id) => {
             if (!isAdmin) return;
-            // No window.confirm() per rules, proceeding with direct delete.
             try {
                 await deleteDoc(doc(db, COLLECTION_NAME, id));
             } catch(e) { console.error(e); handleError("Delete failed"); }
         };
 
-        // --- TOOLS LOGIC (Time Decimal Converter) ---
+        // --- TOOLS LOGIC ---
+
+        // Time Decimal Converter
         function calculateDecimalTime() {
             const hours = parseInt(hoursInput.value) || 0;
             const minutes = parseInt(minutesInput.value) || 0;
 
-            // Basic validation
             if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
                 decimalResult.textContent = 'Error';
                 decimalResult.classList.add('text-red-500');
@@ -496,37 +713,115 @@
         hoursInput.addEventListener('input', calculateDecimalTime);
         minutesInput.addEventListener('input', calculateDecimalTime);
 
-        // Run calculation on load (to display default 8.5)
-        calculateDecimalTime();
+        // Percentage Calculator
+        function calculatePercentage() {
+            const x = parseFloat(percentX.value) || 0;
+            const y = parseFloat(percentY.value) || 0;
+
+            if (isNaN(x) || isNaN(y)) {
+                percentageResult.textContent = 'Error';
+                percentageResult.classList.add('text-red-500');
+                return;
+            }
+
+            const result = (x / 100) * y;
+            percentageResult.textContent = result.toFixed(2).replace(/\.00$/, '');
+            percentageResult.classList.remove('text-red-500');
+        }
+
+        percentX.addEventListener('input', calculatePercentage);
+        percentY.addEventListener('input', calculatePercentage);
+        calculatePercentage(); // Initial run
+
+        // Temperature Converter
+        let isConvertingF = false; // Flag to prevent infinite loops
+
+        function convertTemperature(inputElement, unit) {
+            if (isConvertingF) return; // Prevent loop
+
+            const value = parseFloat(inputElement.value);
+            if (isNaN(value)) {
+                celsiusInput.value = '';
+                fahrenheitInput.value = '';
+                return;
+            }
+            
+            isConvertingF = true;
+
+            if (unit === 'C') {
+                const f = (value * 9/5) + 32;
+                fahrenheitInput.value = f.toFixed(1);
+            } else if (unit === 'F') {
+                const c = (value - 32) * 5/9;
+                celsiusInput.value = c.toFixed(1);
+            }
+            isConvertingF = false;
+        }
+
+        celsiusInput.addEventListener('input', () => convertTemperature(celsiusInput, 'C'));
+        fahrenheitInput.addEventListener('input', () => convertTemperature(fahrenheitInput, 'F'));
+        convertTemperature(celsiusInput, 'C'); // Initial run
 
         // --- UTILITIES & UI Toggles ---
-
-        // Link Input Toggles
-        toggleLinkBtn.addEventListener('click', () => {
-            linkContainer.classList.toggle('hidden');
-            if (!linkContainer.classList.contains('hidden')) linkInput.focus();
-        });
-        closeLinkBtn.addEventListener('click', () => {
-            linkContainer.classList.add('hidden');
+        
+        // Link Input Clear
+        clearLinkBtn.addEventListener('click', () => {
             linkInput.value = '';
         });
 
-        function formatDate(ts) {
-            if (!ts) return 'Just now';
+        // Dark Mode Toggle
+        darkModeToggle.addEventListener('click', () => {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+            }
+            // Re-render icons if needed (though tailwind handles the color changes)
+            lucide.createIcons();
+        });
+
+        // Scroll to Top Button
+        window.onscroll = function() {
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                scrollToTopBtn.classList.add('opacity-100', 'pointer-events-auto');
+            } else {
+                scrollToTopBtn.classList.remove('opacity-100', 'pointer-events-auto');
+            }
+        };
+
+        scrollToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        function formatRelativeTime(ts) {
+            if (!ts || !ts.seconds) return 'Just now';
+            const seconds = Math.floor((new Date() - (ts.seconds * 1000)) / 1000);
+
+            if (seconds < 60) return `${seconds}s ago`;
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            const days = Math.floor(hours / 24);
+            if (days < 30) return `${days}d ago`;
+
+            // Fallback to absolute date for older posts
             return new Date(ts.seconds * 1000).toLocaleDateString('en-US', {
-                month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric'
+                month: 'short', day: 'numeric', year: 'numeric'
             });
         }
         
         function handleError(msg) {
             errorMessage.textContent = msg;
             errorContainer.classList.remove('hidden');
-            setTimeout(() => errorContainer.classList.add('hidden'), 8000); // Extended timeout for critical errors
+            setTimeout(() => errorContainer.classList.add('hidden'), 8000);
         }
         
         function escapeHtml(text) {
             if (!text) return text;
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
         // Init Icons on load
