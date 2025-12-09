@@ -133,8 +133,8 @@
         <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl w-full max-w-sm">
                 <h2 class="text-xl font-bold mb-4">Admin Login</h2>
-                <input id="admin-email" type="email" placeholder="Admin Email" class="w-full p-2 mb-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
-                <input id="admin-pass" type="password" placeholder="Password" class="w-full p-2 mb-4 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                <input id="admin-user" type="text" placeholder="Username (admin)" class="w-full p-2 mb-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                <input id="admin-pass" type="password" placeholder="Password (admin)" class="w-full p-2 mb-4 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
                 <div class="flex justify-end gap-3">
                     <button id="close-modal-btn" class="px-4 py-2 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
                     <button id="submit-login-btn" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Login</button>
@@ -270,13 +270,11 @@
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js';
-        // ADDED signInWithEmailAndPassword, signOut
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
-        // ADDED getDoc, doc
+        // Note: signInWithEmailAndPassword is no longer imported as we revert to client-side check
+        import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
         import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc, onSnapshot, serverTimestamp, getDoc } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
 
         // --- CONFIGURATION START ---
-        // NOTE: KEEP THE CONFIG PUBLICLY VISIBLE FOR THIS ARTIFACT, BUT SECURE WITH RULES
         const firebaseConfig = {
             apiKey: "AIzaSyBBcrvThge1YHswamX_pb7KghiCm5ROUH8",
             authDomain: "pcs-updates.firebaseapp.com",
@@ -287,10 +285,9 @@
         };
         // --- CONFIGURATION END ---
         
-        // --- ADMIN CONFIG (CLIENT-SIDE LOOKUP) ---
-        // This is still client-side logic, but it checks for a specific AUTHENTICATED user ID.
-        // You MUST also enforce this in Firestore Security Rules!
-        const ADMIN_UID = 'YOUR_ADMIN_UID_HERE'; // Replace this with the actual UID of your admin user after they sign up/in once.
+        // --- ADMIN CONFIG (REVERTED TO HARDCODED CREDENTIALS) ---
+        const ADMIN_USERNAME = 'admin';
+        const ADMIN_PASSWORD = 'admin'; 
 
         // Initialize
         const app = initializeApp(firebaseConfig);
@@ -300,12 +297,13 @@
 
         // --- STATE MANAGEMENT ---
         let currentUser = null;
-        let isAdmin = false;
+        // REVERTED: isAdmin is no longer managed by Firebase Auth state
+        let isAdmin = localStorage.getItem('isAdminLoggedIn') === 'true'; 
         let posts = [];
         let filteredPosts = [];
         let editingPostId = null;
         let currentView = 'timeline';
-        let selectedTag = 'General'; // Default tag
+        let selectedTag = 'General'; 
 
         // --- DOM ELEMENTS ---
         const userStatus = document.getElementById('user-status');
@@ -329,8 +327,8 @@
         const loginModal = document.getElementById('login-modal');
         const submitLoginBtn = document.getElementById('submit-login-btn');
         const closeModalBtn = document.getElementById('close-modal-btn');
-        // Admin login fields updated for Firebase Auth
-        const adminEmail = document.getElementById('admin-email'); 
+        // REVERTED: Changed back to a generic username input
+        const adminUser = document.getElementById('admin-user'); 
         const adminPass = document.getElementById('admin-pass');
         const adminStatus = document.getElementById('admin-status');
 
@@ -340,7 +338,6 @@
         
         const errorContainer = document.getElementById('error-container');
         const errorMessage = document.getElementById('error-message');
-        // New success container
         const successContainer = document.getElementById('success-container');
         const successMessage = document.getElementById('success-message');
 
@@ -355,46 +352,32 @@
 
         // --- AUTH & INITIALIZATION ---
 
-        // Start anonymous auth for all users to enable likes and timeline reading
+        // Start anonymous auth for all users to enable reactions
         signInAnonymously(auth).catch((e) => {
              console.error("Auth failed", e);
              handleError("Authentication failed: could not connect to service.");
         });
         
+        // MODIFIED: Simplified onAuthStateChanged to only manage the Firebase user (for reactions)
+        // and initialize the listener. It no longer handles the 'isAdmin' state.
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                // Check if the current authenticated user is the designated admin
-                isAdmin = user.uid === ADMIN_UID; 
-
-                // Updated User UI based on status
-                if (isAdmin) {
-                    userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-400 font-bold border border-red-200 dark:border-red-800";
-                    userStatus.innerHTML = '<i data-lucide="shield-check" class="w-5 h-5"></i>';
-                    userStatus.title = `Admin User: ${user.email || user.uid}`;
-                } else {
-                    userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-800";
-                    userStatus.innerHTML = '<i data-lucide="user-check" class="w-5 h-5"></i>';
-                    userStatus.title = `Connected as Member`;
-                }
-
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<span>Post Update</span><i data-lucide="send" class="w-3.5 h-3.5"></i>';
+                // Since we need a UID for reaction management, we'll use the anonymous UID.
+                // Note: The UI for the admin state is now managed by updateAdminUI()
+                userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-800";
+                userStatus.innerHTML = '<i data-lucide="user-check" class="w-5 h-5"></i>';
+                userStatus.title = `Connected as Member (Anon UID: ${user.uid})`;
 
                 initRealtimeListener();
             } else {
                 currentUser = null;
-                isAdmin = false;
                 userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800 text-gray-400";
                 userStatus.innerHTML = '<i data-lucide="user" class="w-5 h-5"></i>';
                 userStatus.title = `Anonymous User`;
-                
-                // Keep the button disabled until signed in as anonymous/admin
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span>Waiting for Auth...</span><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i>';
             }
             lucide.createIcons();
-            updateAdminUI();
+            updateAdminUI(); // Ensure admin UI reflects current state (from localStorage)
         });
 
         // --- UI/VIEW MANAGEMENT (No Change) ---
@@ -440,7 +423,7 @@
             });
         }
 
-        // --- ADMIN LOGIN LOGIC (MODIFIED FOR FIREBASE AUTH) ---
+        // --- ADMIN LOGIN LOGIC (REVERTED TO CLIENT-SIDE HARDCODED CHECK) ---
 
         function updateAdminUI() {
             if (isAdmin) {
@@ -448,7 +431,14 @@
                 adminStatus.classList.remove('hidden');
                 loginBtn.textContent = 'Logout (Admin)';
                 loginBtnMobile.textContent = 'Logout';
-                
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Post Update</span><i data-lucide="send" class="w-3.5 h-3.5"></i>';
+
+                // Update user status for Admin visual
+                userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-400 font-bold border border-red-200 dark:border-red-800";
+                userStatus.innerHTML = '<i data-lucide="shield-check" class="w-5 h-5"></i>';
+                userStatus.title = `Admin User`;
+
                 const logoutHandler = () => handleLogout();
                 loginBtn.onclick = logoutHandler;
                 loginBtnMobile.onclick = logoutHandler;
@@ -457,63 +447,55 @@
                 adminStatus.classList.add('hidden');
                 loginBtn.textContent = 'Admin Login';
                 loginBtnMobile.textContent = 'Admin';
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>Admin Login Required</span><i data-lucide="send" class="w-3.5 h-3.5"></i>';
                 
+                // Revert user status to anonymous if not admin
+                if(currentUser) {
+                    userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-800";
+                    userStatus.innerHTML = '<i data-lucide="user-check" class="w-5 h-5"></i>';
+                    userStatus.title = `Connected as Member (Anon)`;
+                } else {
+                    userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800 text-gray-400";
+                    userStatus.innerHTML = '<i data-lucide="user" class="w-5 h-5"></i>';
+                    userStatus.title = `Anonymous User`;
+                }
+
                 const loginHandler = () => loginModal.classList.remove('hidden');
                 loginBtn.onclick = loginHandler;
                 loginBtnMobile.onclick = loginHandler;
             }
-            // Re-render feed to show/hide admin controls
+            lucide.createIcons();
             applySearchFilter(); 
         }
         
-        async function handleLogin() {
-            const email = adminEmail.value.trim();
+        function handleLogin() {
+            const username = adminUser.value.trim();
             const password = adminPass.value;
 
-            if (!email || !password) return handleError("Enter email and password.");
-            
-            submitLoginBtn.disabled = true;
-            submitLoginBtn.textContent = 'Logging in...';
-
-            try {
-                // Sign in with email and password
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                
-                if (userCredential.user.uid === ADMIN_UID) {
-                     // Success: UI will be updated by onAuthStateChanged listener
-                     loginModal.classList.add('hidden');
-                     adminEmail.value = '';
-                     adminPass.value = '';
-                     handleSuccess("Admin login successful!");
-                } else {
-                    // Log out non-admin user who tried to use the admin form
-                    await signOut(auth);
-                    handleError("Credentials invalid or not an authorized admin.");
-                    // Re-sign in anonymously after rejection
-                    await signInAnonymously(auth);
-                }
-
-            } catch (error) {
-                // Firebase error codes handle failure
-                console.error(error);
-                handleError("Login failed. Check email and password.");
-            } finally {
-                submitLoginBtn.disabled = false;
-                submitLoginBtn.textContent = 'Login';
+            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                isAdmin = true;
+                localStorage.setItem('isAdminLoggedIn', 'true'); // Persist admin state
+                loginModal.classList.add('hidden');
+                adminUser.value = '';
+                adminPass.value = '';
+                updateAdminUI();
+                handleSuccess("Admin login successful!");
+            } else {
+                handleError("Login failed. Invalid username or password.");
             }
         }
 
-        async function handleLogout() {
-            // Logs out the current admin user
-            await signOut(auth);
-            // Re-sign in anonymously immediately
-            await signInAnonymously(auth);
+        function handleLogout() {
+            isAdmin = false;
+            localStorage.removeItem('isAdminLoggedIn'); // Clear persisted admin state
+            updateAdminUI();
             handleSuccess("Logged out of Admin account.");
         }
 
         submitLoginBtn.addEventListener('click', handleLogin);
         closeModalBtn.addEventListener('click', () => {
-            adminEmail.value = '';
+            adminUser.value = '';
             adminPass.value = '';
             loginModal.classList.add('hidden');
         });
@@ -641,7 +623,7 @@
                         <div class="flex flex-col gap-1.5">
                             <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="font-medium text-gray-900 dark:text-gray-200 text-xs">${isAdmin ? 'Admin Post' : 'Member'}</span>
+                                    <span class="font-medium text-gray-900 dark:text-gray-200 text-xs">${post.authorId === 'admin' ? 'Admin Post' : 'Member'}</span>
                                     <span class="text-xs text-gray-400">
                                         &bull; ${formatRelativeTime(post.createdAt)}
                                     </span>
@@ -746,7 +728,8 @@
                     content,
                     link,
                     tag,
-                    authorId: currentUser.uid,
+                    // REVERTED: Now using a static 'admin' ID for the author
+                    authorId: 'admin', 
                     createdAt: serverTimestamp(),
                     reactions: {}
                 });
@@ -755,7 +738,7 @@
                 linkInput.value = '';
                 selectedTag = 'General';
                 updateTagSelection('General');
-                handleSuccess("Update posted successfully!"); // NEW SUCCESS MESSAGE
+                handleSuccess("Update posted successfully!"); 
             } catch (err) {
                 handleError("Failed to post. Check your Firestore Security Rules.");
                 console.error(err);
@@ -774,8 +757,6 @@
                 let newReactions = { ...post.reactions };
                 if (hasReacted) delete newReactions[userId];
                 else newReactions[userId] = true;
-                // Note: Anonymous users can write to the 'reactions' map, 
-                // but the Firestore rules must prevent them from modifying other fields!
                 await updateDoc(docRef, { reactions: newReactions }); 
             } catch (e) { handleError("Failed to update reaction."); }
         };
@@ -790,13 +771,13 @@
                 const originalPost = posts.find(p => p.id === id);
 
                 try {
-                    // Update only mutable fields while preserving createdAt/authorId/reactions
+                    // Update only mutable fields while preserving createdAt/reactions
                     await setDoc(doc(db, COLLECTION_NAME, id), { 
                         title: newTitle,
                         content: newContent, 
                         link: newLink,
                         tag: newTag,
-                        authorId: originalPost.authorId,
+                        authorId: originalPost.authorId, // Ensure author is preserved
                         createdAt: originalPost.createdAt,
                         reactions: originalPost.reactions
                     });
@@ -896,6 +877,10 @@
             return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
         
+        // Final UI update check after script load
+        updateAdminUI(); 
+        calculateDecimalTime(); 
+        calculatePercentage();
         lucide.createIcons();
     </script>
 </body>
