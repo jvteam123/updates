@@ -9,18 +9,25 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        // Set up dark mode based on localStorage or system preference (Prevents FOUC)
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark')
-        } else {
+        // Set up dark mode based on localStorage or system preference (Defaulting to dark for the requested style)
+        if (localStorage.theme === 'light') {
             document.documentElement.classList.remove('dark')
+        } else {
+            // Default to dark mode if not explicitly set to light
+            document.documentElement.classList.add('dark')
         }
 
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    // Custom colors for the dark theme look
+                    colors: {
+                        'primary-dark': '#030712',
+                        'card-dark': '#0f172a',
+                        'accent-blue': '#3b82f6',
+                    }
                 }
             }
         }
@@ -28,10 +35,8 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .timeline-dot {
-            box-shadow: 0 0 0 4px #f9fafb; 
-        }
-        @media (prefers-color-scheme: dark) {
-            .timeline-dot { box-shadow: 0 0 0 4px #030712; }
+            /* Adjust dot shadow for the deep dark background */
+            box-shadow: 0 0 0 4px #030712; 
         }
         .converter-input {
             appearance: textfield; 
@@ -49,181 +54,180 @@
         .flash-red {
             animation: flash-red 0.5s ease-in-out;
         }
+        /* Custom scrollbar for better look in dark theme */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb {
+            background-color: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover { background-color: #475569; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 min-h-screen transition-colors">
+<body class="bg-primary-dark text-gray-100 min-h-screen transition-colors">
 
-    <div id="app" class="max-w-2xl mx-auto px-4 py-8">
-        <!-- Header & Nav -->
-        <header class="mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex-grow">
-                <h1 class="text-2xl font-bold tracking-tight">PCS Updates</h1>
-            </div>
+    <!-- Overall layout container with fixed sidebar and flexible content area -->
+    <div id="app" class="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-8">
+        
+        <!-- === LEFT COLUMN: Navigation & Composer (Fixed Width) === -->
+        <div class="md:w-96 w-full flex-shrink-0 order-2 md:order-1">
             
-            <div class="flex items-center gap-4">
-                <button id="dark-mode-toggle" class="p-2 rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" title="Toggle Dark/Light Mode">
-                    <i data-lucide="sun" class="w-5 h-5 dark:hidden"></i>
-                    <i data-lucide="moon" class="w-5 h-5 hidden dark:inline"></i>
-                </button>
-                <div id="admin-status" class="text-xs font-medium text-red-500"></div>
-                <!-- Admin Login Button: Now uses a standard JS listener to open the modal -->
-                <button id="login-btn" class="px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded-full text-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">Admin Login</button>
-                <div id="user-status" class="h-8 w-8 rounded-full bg-gray-200 animate-pulse" title="Anonymous User"></div>
-            </div>
-        </header>
-
-        <!-- Navigation Tabs -->
-        <div id="nav-tabs" class="flex border-b border-gray-200 dark:border-gray-800 mb-6">
-            <!-- Tab buttons: Functionality attached via JS listener -->
-            <button data-view="timeline" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400">Timeline</button>
-            <button data-view="tools" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Tools</button>
-        </div>
-
-        <!-- Admin Login Modal/Popup -->
-        <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl w-full max-w-sm">
-                <h2 class="text-xl font-bold mb-4">Admin Login</h2>
-                <input id="admin-user" type="text" placeholder="Username (admin)" class="w-full p-2 mb-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="admin">
-                <input id="admin-pass" type="password" placeholder="Password (admin)" class="w-full p-2 mb-4 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="admin">
-                <div class="flex justify-end gap-3">
-                    <button id="close-modal-btn" class="px-4 py-2 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
-                    <button id="submit-login-btn" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Login</button>
+            <!-- Header & Nav Bar (Redesigned for Left Column) -->
+            <header class="mb-8 flex items-center justify-between gap-4">
+                <h1 class="text-2xl font-bold tracking-tight">PCS Updates</h1>
+                <div class="flex items-center gap-3">
+                    <button id="dark-mode-toggle" class="p-2 rounded-full text-gray-400 hover:bg-gray-800 transition-colors" title="Toggle Dark/Light Mode">
+                        <i data-lucide="sun" class="w-5 h-5 dark:hidden"></i>
+                        <i data-lucide="moon" class="w-5 h-5 hidden dark:inline"></i>
+                    </button>
+                    <!-- Admin Login Button -->
+                    <button id="login-btn" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-full text-sm transition-colors">Admin Login</button>
                 </div>
+            </header>
+            
+            <div class="flex items-center gap-4 mb-6">
+                <div id="user-status" class="h-8 w-8 rounded-full bg-gray-700 animate-pulse" title="Anonymous User"></div>
+                <div id="admin-status" class="text-xs font-medium text-red-400"></div>
             </div>
-        </div>
 
-        <!-- Error Container -->
-        <div id="error-container" class="hidden fixed top-4 right-4 z-50 max-w-sm bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-200 p-4 rounded-lg border border-red-200 dark:border-red-800 text-sm flex items-start gap-3 shadow-lg">
-            <i data-lucide="alert-triangle" class="w-5 h-5 mt-0.5"></i>
-            <span id="error-message"></span>
-            <button onclick="document.getElementById('error-container').classList.add('hidden')" class="ml-auto text-red-500 hover:text-red-700">&times;</button>
-        </div>
+            <!-- Navigation Tabs -->
+            <div id="nav-tabs" class="flex border-b border-gray-700 mb-6">
+                <!-- Tab buttons: Functionality attached via JS listener -->
+                <button data-view="timeline" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-accent-blue text-accent-blue">Timeline</button>
+                <button data-view="tools" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-gray-200">Tools</button>
+            </div>
 
-        <!-- Timeline View -->
-        <div id="timeline-view" class="view">
-            <!-- Composer Form -->
-            <div id="composer-card" class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 mb-6 p-4 transition-all duration-300">
-                <textarea id="post-content" placeholder="What's new?" 
-                    class="w-full min-h-[100px] resize-none bg-transparent border-0 focus:ring-0 text-lg placeholder-gray-400 mb-2 outline-none"></textarea>
+            <!-- Composer Form Card -->
+            <div id="composer-card" class="bg-card-dark rounded-xl shadow-2xl border border-gray-800 mb-6 p-6 transition-all duration-300">
+                <h2 class="text-xl font-semibold mb-4 text-gray-200">What's new?</h2>
+                <textarea id="post-content" placeholder="Type your update here..." 
+                    class="w-full min-h-[100px] resize-none bg-transparent border-0 focus:ring-0 text-lg placeholder-gray-500 mb-4 outline-none"></textarea>
                 
-                <div id="meta-input-container" class="space-y-2 mb-4">
+                <div id="meta-input-container" class="space-y-3 mb-6">
                     <!-- Tag Input -->
-                    <div class="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-md">
-                        <i data-lucide="tag" class="w-4 h-4 text-gray-400"></i>
+                    <div class="flex items-center gap-3 p-3 rounded-lg border border-gray-700">
+                        <i data-lucide="tag" class="w-4 h-4 text-gray-500"></i>
                         <input type="text" id="tag-input" placeholder="Optional tag (e.g., Feature, Bug, Announcement)" 
-                            class="flex-1 bg-transparent border-0 focus:outline-none text-sm">
+                            class="flex-1 bg-transparent border-0 focus:outline-none text-sm placeholder-gray-500">
                     </div>
                     
                     <!-- Link/Media Input -->
-                    <div id="link-input-container" class="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-md">
-                        <i data-lucide="image" class="w-4 h-4 text-gray-400"></i>
-                        <input type="url" id="link-url" placeholder="Optional Image/Link URL (e.g., https://i.imgur.com/image.jpg)" 
-                            class="flex-1 bg-transparent border-0 focus:outline-none text-sm">
-                        <button id="clear-link-btn" class="text-gray-400 hover:text-gray-600">&times;</button>
+                    <div id="link-input-container" class="flex items-center gap-3 p-3 rounded-lg border border-gray-700">
+                        <i data-lucide="image" class="w-4 h-4 text-gray-500"></i>
+                        <input type="url" id="link-url" placeholder="Optional Image/Link URL" 
+                            class="flex-1 bg-transparent border-0 focus:outline-none text-sm placeholder-gray-500">
+                        <button id="clear-link-btn" class="text-gray-400 hover:text-gray-200">&times;</button>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
-                    <button id="submit-btn" class="flex items-center justify-center px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                <div class="flex items-center justify-end pt-4 border-t border-gray-800">
+                    <button id="submit-btn" class="flex items-center justify-center px-6 py-2 bg-accent-blue hover:bg-blue-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         <span class="mr-2">Waiting for Auth...</span>
                         <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
                     </button>
                 </div>
             </div>
-
-            <!-- Search Bar -->
-            <div class="mb-6">
-                <div class="relative">
-                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
-                    <input type="text" id="search-input" placeholder="Search timeline updates..." 
-                        class="w-full p-3 pl-10 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-            </div>
-
-            <!-- Timeline Feed -->
-            <div id="posts-feed" class="space-y-6 relative">
-                <div class="text-center py-12 text-gray-400">Loading updates...</div>
-            </div>
         </div>
 
-        <!-- Tools View -->
-        <div id="tools-view" class="view hidden">
-            <h2 class="text-xl font-bold mb-4">Utility Tools</h2>
+        <!-- === RIGHT COLUMN: Content Area (Flexible Width) === -->
+        <div class="flex-1 order-1 md:order-2">
             
-            <!-- Time Decimal Converter -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 mb-6">
-                <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
-                    <i data-lucide="clock" class="w-5 h-5 text-blue-500"></i>
-                    Time Decimal Converter
-                </h3>
-                <p class="text-sm text-gray-500 mb-4">Convert time (HH:MM) to decimal hours (e.g., 8:30 becomes 8.5).</p>
+            <!-- Search Bar (Now wide at the top of the content area) -->
+            <div class="mb-8">
+                <div class="relative">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"></i>
+                    <input type="text" id="search-input" placeholder="Search timeline updates..." 
+                        class="w-full p-3 pl-10 border border-gray-700 rounded-xl bg-card-dark focus:ring-2 focus:ring-accent-blue focus:border-accent-blue">
+                </div>
+            </div>
+
+            <!-- Timeline View -->
+            <div id="timeline-view" class="view">
+                <!-- Timeline Feed -->
+                <div id="posts-feed" class="space-y-8 relative">
+                    <div class="text-center py-12 text-gray-500">Loading updates...</div>
+                </div>
+            </div>
+
+            <!-- Tools View -->
+            <div id="tools-view" class="view hidden">
+                <h2 class="text-xl font-bold mb-4">Utility Tools</h2>
                 
-                <div class="flex flex-col sm:flex-row gap-4 mb-4">
-                    <div class="flex-1">
-                        <label for="hours-input" class="block text-xs font-medium text-gray-500 mb-1">Hours (0-23)</label>
-                        <input type="number" id="hours-input" min="0" max="23" placeholder="HH" value="8"
-                            class="converter-input w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-center text-lg">
+                <!-- Time Decimal Converter -->
+                <div class="bg-card-dark rounded-xl shadow-md border border-gray-800 p-6 mb-6">
+                    <h3 class="text-lg font-semibold mb-3 flex items-center gap-2 text-gray-200">
+                        <i data-lucide="clock" class="w-5 h-5 text-blue-400"></i>
+                        Time Decimal Converter
+                    </h3>
+                    <p class="text-sm text-gray-400 mb-4">Convert time (HH:MM) to decimal hours (e.g., 8:30 becomes 8.5).</p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                        <div class="flex-1">
+                            <label for="hours-input" class="block text-xs font-medium text-gray-500 mb-1">Hours (0-23)</label>
+                            <input type="number" id="hours-input" min="0" max="23" placeholder="HH" value="8"
+                                class="converter-input w-full p-2 border rounded-lg bg-gray-800 border-gray-700 text-center text-lg focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div class="flex-1">
+                            <label for="minutes-input" class="block text-xs font-medium text-gray-500 mb-1">Minutes (0-59)</label>
+                            <input type="number" id="minutes-input" min="0" max="59" placeholder="MM" value="30"
+                                class="converter-input w-full p-2 border rounded-lg bg-gray-800 border-gray-700 text-center text-lg focus:ring-blue-500 focus:border-blue-500">
+                        </div>
                     </div>
-                    <div class="flex-1">
-                        <label for="minutes-input" class="block text-xs font-medium text-gray-500 mb-1">Minutes (0-59)</label>
-                        <input type="number" id="minutes-input" min="0" max="59" placeholder="MM" value="30"
-                            class="converter-input w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-center text-lg">
+
+                    <div class="text-center mt-6 p-4 border border-blue-800 bg-blue-900/30 rounded-lg">
+                        <p class="text-sm text-blue-400">Decimal Time Result:</p>
+                        <p id="decimal-result" class="text-3xl font-bold text-blue-300 mt-1">8.5</p>
+                    </div>
+                </div>
+                
+                <!-- Percentage Calculator -->
+                <div class="bg-card-dark rounded-xl shadow-md border border-gray-800 p-6 mb-6">
+                    <h3 class="text-lg font-semibold mb-3 flex items-center gap-2 text-gray-200">
+                        <i data-lucide="percent" class="w-5 h-5 text-green-400"></i>
+                        Percentage Calculator
+                    </h3>
+                    <p class="text-sm text-gray-400 mb-4">What is (<span class="font-bold text-green-400">X</span>) % of (<span class="font-bold text-green-400">Y</span>)?</p>
+
+                    <div class="flex flex-col sm:flex-row gap-4 mb-4 items-center">
+                        <div class="flex-1">
+                            <label for="percent-x" class="block text-xs font-medium text-gray-500 mb-1">X (%)</label>
+                            <input type="number" id="percent-x" placeholder="15" value="15"
+                                class="converter-input w-full p-2 border rounded-lg bg-gray-800 border-gray-700 text-center text-lg focus:ring-green-500 focus:border-green-500">
+                        </div>
+                        <span class="text-xl font-bold pt-4 text-gray-500">% of</span>
+                        <div class="flex-1">
+                            <label for="percent-y" class="block text-xs font-medium text-gray-500 mb-1">Y (Total)</label>
+                            <input type="number" id="percent-y" placeholder="200" value="200"
+                                class="converter-input w-full p-2 border rounded-lg bg-gray-800 border-gray-700 text-center text-lg focus:ring-green-500 focus:border-green-500">
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-6 p-4 border border-green-800 bg-green-900/30 rounded-lg">
+                        <p class="text-sm text-green-400">Calculation Result:</p>
+                        <p id="percentage-result" class="text-3xl font-bold text-green-300 mt-1">30</p>
                     </div>
                 </div>
 
-                <div class="text-center mt-6 p-4 border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <p class="text-sm text-blue-600 dark:text-blue-300">Decimal Time Result:</p>
-                    <p id="decimal-result" class="text-3xl font-bold text-blue-800 dark:text-blue-200 mt-1">8.5</p>
-                </div>
-            </div>
-            
-            <!-- Percentage Calculator -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 mb-6">
-                <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
-                    <i data-lucide="percent" class="w-5 h-5 text-green-500"></i>
-                    Percentage Calculator
-                </h3>
-                <p class="text-sm text-gray-500 mb-4">What is (<span class="font-bold text-green-600">X</span>) % of (<span class="font-bold text-green-600">Y</span>)?</p>
+                <!-- Simple Unit Converter (C to F) -->
+                <div class="bg-card-dark rounded-xl shadow-md border border-gray-800 p-6 mb-6">
+                    <h3 class="text-lg font-semibold mb-3 flex items-center gap-2 text-gray-200">
+                        <i data-lucide="thermometer" class="w-5 h-5 text-yellow-400"></i>
+                        Temperature Converter (C $\leftrightarrow$ F)
+                    </h3>
+                    <p class="text-sm text-gray-400 mb-4">Convert between Celsius and Fahrenheit.</p>
 
-                <div class="flex flex-col sm:flex-row gap-4 mb-4 items-center">
-                    <div class="flex-1">
-                        <label for="percent-x" class="block text-xs font-medium text-gray-500 mb-1">X (%)</label>
-                        <input type="number" id="percent-x" placeholder="15" value="15"
-                            class="converter-input w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-center text-lg">
-                    </div>
-                    <span class="text-xl font-bold pt-4 text-gray-500">% of</span>
-                    <div class="flex-1">
-                        <label for="percent-y" class="block text-xs font-medium text-gray-500 mb-1">Y (Total)</label>
-                        <input type="number" id="percent-y" placeholder="200" value="200"
-                            class="converter-input w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-center text-lg">
-                    </div>
-                </div>
-
-                <div class="text-center mt-6 p-4 border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <p class="text-sm text-green-600 dark:text-green-300">Calculation Result:</p>
-                    <p id="percentage-result" class="text-3xl font-bold text-green-800 dark:text-green-200 mt-1">30</p>
-                </div>
-            </div>
-
-            <!-- Simple Unit Converter (C to F) -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 mb-6">
-                <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
-                    <i data-lucide="thermometer" class="w-5 h-5 text-yellow-500"></i>
-                    Temperature Converter (C $\leftrightarrow$ F)
-                </h3>
-                <p class="text-sm text-gray-500 mb-4">Convert between Celsius and Fahrenheit.</p>
-
-                <div class="flex flex-col sm:flex-row gap-4 mb-4 items-center">
-                    <div class="flex-1">
-                        <label for="celsius-input" class="block text-xs font-medium text-gray-500 mb-1">Celsius ($\degree\text{C}$)</label>
-                        <input type="number" id="celsius-input" placeholder="0" value="0"
-                            class="converter-input w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-center text-lg">
-                    </div>
-                    <i data-lucide="arrow-right-left" class="w-5 h-5 text-gray-500 pt-4"></i>
-                    <div class="flex-1">
-                        <label for="fahrenheit-input" class="block text-xs font-medium text-gray-500 mb-1">Fahrenheit ($\degree\text{F}$)</label>
-                        <input type="number" id="fahrenheit-input" placeholder="32" value="32"
-                            class="converter-input w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-center text-lg">
+                    <div class="flex flex-col sm:flex-row gap-4 mb-4 items-center">
+                        <div class="flex-1">
+                            <label for="celsius-input" class="block text-xs font-medium text-gray-500 mb-1">Celsius ($\degree\text{C}$)</label>
+                            <input type="number" id="celsius-input" placeholder="0" value="0"
+                                class="converter-input w-full p-2 border rounded-lg bg-gray-800 border-gray-700 text-center text-lg focus:ring-yellow-500 focus:border-yellow-500">
+                        </div>
+                        <i data-lucide="arrow-right-left" class="w-5 h-5 text-gray-500 pt-4"></i>
+                        <div class="flex-1">
+                            <label for="fahrenheit-input" class="block text-xs font-medium text-gray-500 mb-1">Fahrenheit ($\degree\text{F}$)</label>
+                            <input type="number" id="fahrenheit-input" placeholder="32" value="32"
+                                class="converter-input w-full p-2 border rounded-lg bg-gray-800 border-gray-700 text-center text-lg focus:ring-yellow-500 focus:border-yellow-500">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -231,9 +235,30 @@
     </div>
 
     <!-- Scroll to Top Button -->
-    <button id="scroll-to-top" class="fixed bottom-4 right-4 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-opacity duration-300 opacity-0 pointer-events-none z-40">
+    <button id="scroll-to-top" class="fixed bottom-4 right-4 p-3 bg-accent-blue text-white rounded-full shadow-lg hover:bg-blue-600 transition-opacity duration-300 opacity-0 pointer-events-none z-40">
         <i data-lucide="arrow-up" class="w-5 h-5"></i>
     </button>
+    
+    <!-- Admin Login Modal/Popup -->
+    <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+        <div class="bg-card-dark p-6 rounded-xl shadow-2xl w-full max-w-sm border border-gray-700">
+            <h2 class="text-xl font-bold mb-4">Admin Login</h2>
+            <input id="admin-user" type="text" placeholder="Username (admin)" class="w-full p-3 mb-3 border rounded-lg bg-gray-800 border-gray-700 text-gray-200" value="admin">
+            <input id="admin-pass" type="password" placeholder="Password (admin)" class="w-full p-3 mb-4 border rounded-lg bg-gray-800 border-gray-700 text-gray-200" value="admin">
+            <div class="flex justify-end gap-3">
+                <button id="close-modal-btn" class="px-4 py-2 text-sm rounded-lg text-gray-400 hover:bg-gray-800">Cancel</button>
+                <button id="submit-login-btn" class="px-4 py-2 text-sm bg-accent-blue text-white rounded-lg hover:bg-blue-600">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Container -->
+    <div id="error-container" class="hidden fixed top-4 right-4 z-50 max-w-sm bg-red-900/20 text-red-200 p-4 rounded-lg border border-red-800 text-sm flex items-start gap-3 shadow-lg">
+        <i data-lucide="alert-triangle" class="w-5 h-5 mt-0.5 text-red-400"></i>
+        <span id="error-message"></span>
+        <button onclick="document.getElementById('error-container').classList.add('hidden')" class="ml-auto text-red-400 hover:text-red-200">&times;</button>
+    </div>
+
 
     <!-- Firebase Logic -->
     <script type="module">
@@ -321,7 +346,8 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                userStatus.className = "h-8 w-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500";
+                // User status indicator color
+                userStatus.className = "h-8 w-8 rounded-full bg-gradient-to-tr from-accent-blue to-purple-500";
                 userStatus.title = `User ID: ${user.uid}`;
                 
                 // Enable Post button and update text
@@ -331,7 +357,7 @@
                 initRealtimeListener();
             } else {
                 currentUser = null;
-                userStatus.className = "h-8 w-8 rounded-full bg-gray-200 animate-pulse";
+                userStatus.className = "h-8 w-8 rounded-full bg-gray-700 animate-pulse";
                 userStatus.title = "Anonymous User (Auth Pending/Failed)";
                 
                 // Disable Post button and show loading state
@@ -339,9 +365,9 @@
                 submitBtn.innerHTML = '<span class="mr-2">Waiting for Auth...</span><i data-lucide="loader" class="w-4 h-4 animate-spin"></i>';
 
                 feedContainer.innerHTML = `
-                    <div class="text-center py-12 text-gray-400">
+                    <div class="text-center py-12 text-gray-500">
                         <i data-lucide="alert-triangle" class="w-8 h-8 mx-auto mb-4 text-red-500"></i>
-                        <p class="text-red-500">Waiting for Authentication...</p>
+                        <p class="text-red-400">Waiting for Authentication...</p>
                     </div>`;
                 lucide.createIcons();
             }
@@ -359,11 +385,10 @@
 
             navTabs.forEach(tab => {
                 const isActive = tab.dataset.view === viewName;
-                tab.classList.toggle('border-blue-600', isActive);
-                tab.classList.toggle('text-blue-600', isActive);
-                tab.classList.toggle('dark:text-blue-400', isActive);
+                tab.classList.toggle('border-accent-blue', isActive);
+                tab.classList.toggle('text-accent-blue', isActive);
                 tab.classList.toggle('border-transparent', !isActive);
-                tab.classList.toggle('text-gray-500', !isActive);
+                tab.classList.toggle('text-gray-400', !isActive);
             });
             lucide.createIcons();
             // Re-run tool calculations when switching to tools view
@@ -383,15 +408,17 @@
         function updateAdminUI() {
             if (isAdmin) {
                 adminStatus.textContent = 'ADMIN MODE';
-                adminStatus.classList.remove('text-red-500');
-                adminStatus.classList.add('text-green-500', 'font-bold');
+                adminStatus.classList.remove('text-red-400');
+                adminStatus.classList.add('text-green-400', 'font-bold');
                 loginBtn.textContent = 'Logout';
+                // Use addEventListener for logout
                 loginBtn.onclick = handleLogout;
             } else {
                 adminStatus.textContent = '';
-                adminStatus.classList.remove('text-green-500', 'font-bold');
-                adminStatus.classList.add('text-red-500');
+                adminStatus.classList.remove('text-green-400', 'font-bold');
+                adminStatus.classList.add('text-red-400');
                 loginBtn.textContent = 'Admin Login';
+                // Use addEventListener for login modal open
                 loginBtn.onclick = () => loginModal.classList.remove('hidden'); 
             }
             applySearchFilter(); // Re-render to show/hide edit/delete buttons
@@ -417,8 +444,8 @@
             updateAdminUI();
         }
 
-        loginBtn.addEventListener('click', () => {
-             // This listener handles both Login (showing modal) and Logout (handleLogout)
+        loginBtn.addEventListener('click', (e) => {
+             // Listener handles both Login (showing modal) and Logout (handleLogout)
              if (!isAdmin) {
                 loginModal.classList.remove('hidden');
              } else {
@@ -493,7 +520,7 @@
             if (currentPosts.length === 0) {
                 const message = searchInput.value.trim() ? "No results found for your search." : "No updates yet.";
                 feedContainer.innerHTML = `
-                    <div class="text-center py-12 text-gray-400">
+                    <div class="text-center py-12 text-gray-500">
                         <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-4 opacity-50"></i>
                         <p>${message}</p>
                     </div>`;
@@ -512,12 +539,12 @@
                 // Post Content (Edit Mode vs. View Mode)
                 const postContentHtml = isCurrentEditing
                     ? `
-                        <textarea id="edit-content-${post.id}" class="w-full h-32 p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">${escapeHtml(post.content || '')}</textarea>
-                        <input type="text" id="edit-tag-${post.id}" class="w-full p-2 mt-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="${escapeHtml(post.tag || '')}" placeholder="Tag">
-                        <input type="url" id="edit-link-${post.id}" class="w-full p-2 mt-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="${escapeHtml(post.link || '')}" placeholder="Link/Image URL">
+                        <textarea id="edit-content-${post.id}" class="w-full h-32 p-3 border rounded-lg bg-gray-800 border-gray-700">${escapeHtml(post.content || '')}</textarea>
+                        <input type="text" id="edit-tag-${post.id}" class="w-full p-2 mt-2 border rounded-lg bg-gray-800 border-gray-700" value="${escapeHtml(post.tag || '')}" placeholder="Tag">
+                        <input type="url" id="edit-link-${post.id}" class="w-full p-2 mt-2 border rounded-lg bg-gray-800 border-gray-700" value="${escapeHtml(post.link || '')}" placeholder="Link/Image URL">
                       `
                     : `
-                        <p class="whitespace-pre-wrap text-base leading-relaxed text-gray-800 dark:text-gray-200">${escapeHtml(post.content)}</p>
+                        <p class="whitespace-pre-wrap text-base leading-relaxed text-gray-200">${escapeHtml(post.content)}</p>
                         ${post.link ? renderMedia(post.link) : ''}
                       `;
 
@@ -526,12 +553,12 @@
                     <div class="flex gap-2">
                         <button data-action="${isCurrentEditing ? 'save-edit' : 'edit-post'}" 
                             data-post-id="${post.id}"
-                            class="p-1 text-xs font-medium rounded-md ${isCurrentEditing ? 'bg-green-600 text-white hover:bg-green-700' : 'text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'}">
+                            class="p-1 text-xs font-medium rounded-md ${isCurrentEditing ? 'bg-green-600 text-white hover:bg-green-700' : 'text-accent-blue hover:bg-gray-800'}">
                             <i data-lucide="${isCurrentEditing ? 'save' : 'edit'}" class="w-3 h-3 mr-1 inline"></i>
                             ${isCurrentEditing ? 'Save' : 'Edit'}
                         </button>
                         ${!isCurrentEditing ? `
-                            <button data-action="delete-post" data-post-id="${post.id}" class="p-1 text-xs font-medium rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
+                            <button data-action="delete-post" data-post-id="${post.id}" class="p-1 text-xs font-medium rounded-md text-red-400 hover:bg-gray-800">
                                 <i data-lucide="trash-2" class="w-3 h-3 mr-1 inline"></i>
                                 Delete
                             </button>
@@ -544,7 +571,7 @@
                     <button data-action="toggle-reaction" 
                             data-post-id="${post.id}" 
                             data-reacted="${hasReacted}"
-                            class="flex items-center gap-1.5 p-1 px-2 text-sm rounded-full transition-colors ${hasReacted ? 'bg-red-500 text-white hover:bg-red-600' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'}">
+                            class="flex items-center gap-1.5 p-1 px-2 text-sm rounded-full transition-colors ${hasReacted ? 'bg-red-500 text-white hover:bg-red-600' : 'text-gray-400 hover:bg-gray-800'}">
                         <i data-lucide="heart" class="w-4 h-4 fill-current ${hasReacted ? '' : 'fill-none'}"></i>
                         <span class="font-medium">${reactionCount}</span>
                     </button>
@@ -553,8 +580,9 @@
                 const displayedAuthorId = post.authorId ? escapeHtml(post.authorId).substring(0, 8) + '...' : 'Anonymous';
 
                 return `
-                    <div class="group relative pl-8 pb-8 last:pb-0 border-l-2 border-gray-200 dark:border-gray-800">
-                        <div class="timeline-dot absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-blue-500 border-4 border-gray-50 dark:border-gray-950"></div>
+                    <div class="group relative pl-8 pb-8 last:pb-0 border-l-2 border-gray-700">
+                        <!-- Timeline Dot: Adjusted for deep dark background -->
+                        <div class="timeline-dot absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-accent-blue border-4 border-primary-dark"></div>
                         
                         <div class="flex flex-col gap-2">
                             <!-- Header Bar -->
@@ -566,7 +594,7 @@
                                     <span class="text-xs text-gray-500">
                                         &bull; ${formatRelativeTime(post.createdAt)}
                                     </span>
-                                    ${post.tag ? `<span class="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-[10px] font-semibold uppercase">${escapeHtml(post.tag)}</span>` : ''}
+                                    ${post.tag ? `<span class="px-2 py-0.5 bg-yellow-900/40 text-yellow-400 rounded-full text-[10px] font-semibold uppercase">${escapeHtml(post.tag)}</span>` : ''}
                                 </div>
                                 ${adminButtons}
                             </div>
@@ -589,20 +617,20 @@
             const safeUrl = escapeHtml(url);
             if (isImageUrl(url)) {
                 return `
-                    <div class="mt-4 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 max-w-full">
+                    <div class="mt-4 overflow-hidden rounded-xl border border-gray-700 max-w-full">
                         <img src="${safeUrl}" alt="Post image" class="w-full h-auto object-cover max-h-96" 
-                             onerror="this.onerror=null; this.src='https://placehold.co/400x200/94a3b8/ffffff?text=Image+Load+Failed'; this.alt='Image not found';">
+                             onerror="this.onerror=null; this.src='https://placehold.co/400x200/1f2937/9ca3af?text=Image+Load+Failed'; this.alt='Image not found';">
                     </div>
                 `;
             } else {
                 return `
                     <a href="${safeUrl}" target="_blank" rel="noopener noreferrer"
-                       class="flex items-center gap-3 p-3 mt-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors w-full max-w-sm">
-                        <div class="h-8 w-8 flex items-center justify-center rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shrink-0">
+                       class="flex items-center gap-3 p-3 mt-4 rounded-xl border border-gray-700 bg-gray-800 hover:bg-gray-700 transition-colors w-full max-w-sm">
+                        <div class="h-8 w-8 flex items-center justify-center rounded-lg bg-blue-900/50 text-blue-400 shrink-0">
                             <i data-lucide="external-link" class="w-4 h-4"></i>
                         </div>
                         <div class="overflow-hidden">
-                            <p class="text-sm font-medium text-blue-600 dark:text-blue-400 truncate">${safeUrl}</p>
+                            <p class="text-sm font-medium text-blue-400 truncate">${safeUrl}</p>
                             <p class="text-xs text-gray-500">External Link</p>
                         </div>
                     </a>
@@ -852,6 +880,7 @@
                 // Switching to Light
                 html.classList.remove('dark');
                 localStorage.theme = 'light';
+                // Note: The UI now looks heavily optimized for dark mode, light mode might look sparse.
             } else {
                 // Switching to Dark
                 html.classList.add('dark');
@@ -901,9 +930,6 @@
         
         function escapeHtml(text) {
             if (!text) return text;
-            // The string must use a placeholder for double quotes for the HTML injection, but
-            // for standard innerText contexts, simply escaping is fine. Since this is used
-            // for value attributes and inner HTML, this escape function remains necessary.
             return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
