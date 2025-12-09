@@ -9,7 +9,7 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        // Set up dark mode based on localStorage or system preference
+        // Set up dark mode based on localStorage or system preference (Prevents FOUC)
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark')
         } else {
@@ -40,6 +40,14 @@
         .converter-input::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
+        }
+        /* Keyframes for flash effect on empty post click */
+        @keyframes flash-red {
+            0%, 100% { border-color: rgb(229 231 235); }
+            50% { border-color: rgb(239 68 68); }
+        }
+        .flash-red {
+            animation: flash-red 0.5s ease-in-out;
         }
     </style>
 </head>
@@ -93,7 +101,7 @@
         <!-- Timeline View -->
         <div id="timeline-view" class="view">
             <!-- Composer Form -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 mb-6 p-4">
+            <div id="composer-card" class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 mb-6 p-4 transition-all duration-300">
                 <textarea id="post-content" placeholder="What's new?" 
                     class="w-full min-h-[100px] resize-none bg-transparent border-0 focus:ring-0 text-lg placeholder-gray-400 mb-2 outline-none"></textarea>
                 
@@ -115,9 +123,9 @@
                 </div>
 
                 <div class="flex items-center justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
-                    <button id="submit-btn" class="flex items-center justify-center px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span class="mr-2">Post</span>
-                        <i data-lucide="send" class="w-4 h-4"></i>
+                    <button id="submit-btn" class="flex items-center justify-center px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <span class="mr-2">Waiting for Auth...</span>
+                        <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
                     </button>
                 </div>
             </div>
@@ -267,6 +275,7 @@
         const userStatus = document.getElementById('user-status');
         const feedContainer = document.getElementById('posts-feed');
         const submitBtn = document.getElementById('submit-btn');
+        const composerCard = document.getElementById('composer-card');
         const contentInput = document.getElementById('post-content');
         const linkInput = document.getElementById('link-url');
         const tagInput = document.getElementById('tag-input');
@@ -314,11 +323,21 @@
                 currentUser = user;
                 userStatus.className = "h-8 w-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500";
                 userStatus.title = `User ID: ${user.uid}`;
+                
+                // Enable Post button and update text
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span class="mr-2">Post</span><i data-lucide="send" class="w-4 h-4"></i>';
+
                 initRealtimeListener();
             } else {
                 currentUser = null;
                 userStatus.className = "h-8 w-8 rounded-full bg-gray-200 animate-pulse";
                 userStatus.title = "Anonymous User (Auth Pending/Failed)";
+                
+                // Disable Post button and show loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="mr-2">Waiting for Auth...</span><i data-lucide="loader" class="w-4 h-4 animate-spin"></i>';
+
                 feedContainer.innerHTML = `
                     <div class="text-center py-12 text-gray-400">
                         <i data-lucide="alert-triangle" class="w-8 h-8 mx-auto mb-4 text-red-500"></i>
@@ -585,10 +604,16 @@
             const link = linkInput.value.trim();
             const tag = tagInput.value.trim();
 
-            if (!content && !link) return;
-
             if (!currentUser || !currentUser.uid) {
-                handleError("Cannot post. Authentication failed. Please enable Anonymous Auth in Firebase Console.");
+                handleError("Post failed: Not authenticated. Waiting for anonymous sign-in to complete.");
+                return;
+            }
+
+            if (!content && !link) {
+                // If both are empty, provide visual feedback
+                composerCard.classList.add('flash-red');
+                setTimeout(() => composerCard.classList.remove('flash-red'), 500);
+                handleError("Please enter content or a link before posting.");
                 return;
             }
 
@@ -774,17 +799,23 @@
             linkInput.value = '';
         });
 
-        // Dark Mode Toggle
+        // Dark Mode Toggle Fix: Ensure robust class swap and icon re-creation
         darkModeToggle.addEventListener('click', () => {
-            if (document.documentElement.classList.contains('dark')) {
-                document.documentElement.classList.remove('dark');
+            console.log("Toggling theme...");
+            const html = document.documentElement;
+
+            if (html.classList.contains('dark')) {
+                // Switching to Light
+                html.classList.remove('dark');
                 localStorage.theme = 'light';
             } else {
-                document.documentElement.classList.add('dark');
+                // Switching to Dark
+                html.classList.add('dark');
                 localStorage.theme = 'dark';
             }
-            // Re-render icons if needed (though tailwind handles the color changes)
-            lucide.createIcons();
+            
+            // Re-render icons to ensure the sun/moon icon switch updates their SVG wrapper.
+            lucide.createIcons(); 
         });
 
         // Scroll to Top Button
