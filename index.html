@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PCS Updates</title>
-    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         // Set up dark mode based on localStorage or system preference (Prevents FOUC)
@@ -27,6 +25,7 @@
     </script>
     <style>
         body { font-family: 'Inter', sans-serif; }
+        /* Adjusted timeline-dot ring color for better contrast */
         .timeline-dot {
             box-shadow: 0 0 0 4px #f9fafb; 
         }
@@ -73,20 +72,29 @@
         .dark ::-webkit-scrollbar-thumb {
             background-color: #334155;
         }
+        
+        /* New: Timeline Structure Enhancement */
+        #posts-feed {
+            /* Add a persistent left border to the whole feed container */
+            border-left: 1px solid #e5e7eb; /* gray-200 */
+        }
+        .dark #posts-feed {
+             border-left: 1px solid #1f2937; /* gray-800 */
+        }
+        .post-container {
+            /* Reset the left border on individual posts */
+            border-left: none !important;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 min-h-screen transition-colors">
 
-    <!-- Expanded Container Width for 2-Column Layout -->
     <div id="app" class="max-w-7xl mx-auto px-4 py-6">
         
-        <!-- Header & Nav -->
         <header class="flex flex-col lg:flex-row items-center justify-between gap-6 mb-8">
             <div class="flex items-center gap-4 w-full lg:w-auto justify-between lg:justify-start">
-                <!-- Title -->
                 <h1 class="text-2xl font-bold tracking-tight whitespace-nowrap">PCS Updates</h1>
                 
-                <!-- Dark Mode & Admin (Mobile Position) -->
                 <div class="flex lg:hidden items-center gap-2">
                     <button id="dark-mode-toggle-mobile" class="p-2 rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
                         <i data-lucide="sun" class="w-5 h-5 dark:hidden"></i>
@@ -96,14 +104,12 @@
                 </div>
             </div>
 
-            <!-- Search Bar (Header Position) -->
             <div class="w-full lg:max-w-xl relative">
                 <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
                 <input type="text" id="search-input" placeholder="Search timeline updates..." 
                     class="w-full py-2.5 pl-10 pr-4 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm">
             </div>
             
-            <!-- Desktop Controls -->
             <div class="hidden lg:flex items-center gap-3">
                 <button id="dark-mode-toggle" class="p-2 rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" title="Toggle Dark/Light Mode">
                     <i data-lucide="sun" class="w-5 h-5 dark:hidden"></i>
@@ -113,58 +119,56 @@
                 <div id="admin-status" class="text-xs font-medium text-red-500 hidden"></div>
                 <button id="login-btn" class="px-3 py-1.5 bg-gray-200 dark:bg-gray-800 rounded-full text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">Admin Login</button>
                 
-                <!-- User Status UI -->
                 <div id="user-status" class="h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400" title="Anonymous User">
                      <i data-lucide="user" class="w-5 h-5"></i>
                 </div>
             </div>
         </header>
 
-        <!-- Navigation Tabs (Aligned Left) -->
         <div id="nav-tabs" class="flex border-b border-gray-200 dark:border-gray-800 mb-6">
             <button data-view="timeline" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400">Timeline</button>
             <button data-view="tools" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Tools</button>
         </div>
 
-        <!-- Admin Login Modal/Popup -->
         <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl w-full max-w-sm">
                 <h2 class="text-xl font-bold mb-4">Admin Login</h2>
-                <input id="admin-user" type="text" placeholder="Username (admin)" class="w-full p-2 mb-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="admin">
-                <input id="admin-pass" type="password" placeholder="Password (admin)" class="w-full p-2 mb-4 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="admin">
+                <input id="admin-email" type="email" placeholder="Admin Email" class="w-full p-2 mb-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                <input id="admin-pass" type="password" placeholder="Password" class="w-full p-2 mb-4 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
                 <div class="flex justify-end gap-3">
                     <button id="close-modal-btn" class="px-4 py-2 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
                     <button id="submit-login-btn" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Login</button>
                 </div>
             </div>
         </div>
+        
+        <div id="success-container" class="hidden fixed top-4 right-4 z-50 max-w-sm bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-200 p-4 rounded-lg border border-green-200 dark:border-green-800 text-sm flex items-start gap-3 shadow-lg">
+            <i data-lucide="check-circle" class="w-5 h-5 mt-0.5"></i>
+            <span id="success-message">Update posted successfully!</span>
+            <button onclick="document.getElementById('success-container').classList.add('hidden')" class="ml-auto text-green-500 hover:text-green-700">&times;</button>
+        </div>
 
-        <!-- Error Container -->
         <div id="error-container" class="hidden fixed top-4 right-4 z-50 max-w-sm bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-200 p-4 rounded-lg border border-red-200 dark:border-red-800 text-sm flex items-start gap-3 shadow-lg">
             <i data-lucide="alert-triangle" class="w-5 h-5 mt-0.5"></i>
             <span id="error-message"></span>
             <button onclick="document.getElementById('error-container').classList.add('hidden')" class="ml-auto text-red-500 hover:text-red-700">&times;</button>
         </div>
 
-        <!-- Timeline View (Grid Layout) -->
         <div id="timeline-view" class="view">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
-                <!-- Left Column: Composer (Sticky) -->
                 <div class="lg:col-span-4 lg:sticky lg:top-4 space-y-4">
                     <div id="composer-card" class="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 p-5 transition-all duration-300">
                         <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
                             What's new?
                         </h2>
 
-                        <!-- Title Input -->
                         <input id="post-title" type="text" placeholder="Title (Optional)" 
                             class="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-0 text-base font-semibold placeholder-gray-400 mb-3 pb-1 outline-none transition-colors">
 
                         <textarea id="post-content" placeholder="Type your update here..." 
                             class="w-full min-h-[120px] resize-none bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border border-transparent focus:bg-white dark:focus:bg-gray-900 focus:border-blue-500 focus:ring-0 text-sm placeholder-gray-400 mb-4 outline-none transition-all"></textarea>
                         
-                        <!-- Tag Selection -->
                         <div class="mb-4">
                             <div id="tag-selector" class="flex flex-wrap gap-2">
                                 <button type="button" class="tag-pill px-3 py-1 rounded-full text-[11px] font-medium border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" data-tag="General">General</button>
@@ -175,7 +179,6 @@
                         </div>
 
                         <div id="meta-input-container" class="space-y-3">
-                            <!-- Link/Media Input -->
                             <div id="link-input-container" class="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/50 px-3 py-2 rounded-lg border border-gray-100 dark:border-gray-800">
                                 <i data-lucide="image" class="w-4 h-4 text-gray-400"></i>
                                 <input type="url" id="link-url" placeholder="Optional Image/Link URL" 
@@ -190,15 +193,12 @@
                         </div>
                     </div>
                     
-                    <!-- Helper Text / Instructions could go here -->
                     <div class="text-xs text-gray-400 px-2 text-center">
                         <p>Formatting Tip: Use standard text. URLs in the link field render as previews.</p>
                     </div>
                 </div>
 
-                <!-- Right Column: Feed -->
                 <div class="lg:col-span-8">
-                    <!-- Timeline Feed -->
                     <div id="posts-feed" class="space-y-6 relative pb-12">
                         <div class="text-center py-20 text-gray-400 bg-white dark:bg-gray-900 rounded-xl border border-dashed border-gray-200 dark:border-gray-800">
                             <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 opacity-50"></i>
@@ -210,12 +210,10 @@
             </div>
         </div>
 
-        <!-- Tools View -->
         <div id="tools-view" class="view hidden max-w-3xl mx-auto">
             <h2 class="text-xl font-bold mb-6">Utility Tools</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Time Decimal Converter -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6">
                     <h3 class="text-sm font-semibold mb-4 flex items-center gap-2 uppercase text-gray-500 tracking-wider">
                         <i data-lucide="clock" class="w-4 h-4 text-blue-500"></i>
@@ -239,7 +237,6 @@
                     </div>
                 </div>
                 
-                <!-- Percentage Calculator -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6">
                     <h3 class="text-sm font-semibold mb-4 flex items-center gap-2 uppercase text-gray-500 tracking-wider">
                         <i data-lucide="percent" class="w-4 h-4 text-green-500"></i>
@@ -267,18 +264,19 @@
         </div>
     </div>
 
-    <!-- Scroll to Top Button -->
     <button id="scroll-to-top" class="fixed bottom-4 right-4 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-opacity duration-300 opacity-0 pointer-events-none z-40">
         <i data-lucide="arrow-up" class="w-5 h-5"></i>
     </button>
 
-    <!-- Firebase Logic -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js';
-        import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
-        import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
+        // ADDED signInWithEmailAndPassword, signOut
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
+        // ADDED getDoc, doc
+        import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc, onSnapshot, serverTimestamp, getDoc } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
 
         // --- CONFIGURATION START ---
+        // NOTE: KEEP THE CONFIG PUBLICLY VISIBLE FOR THIS ARTIFACT, BUT SECURE WITH RULES
         const firebaseConfig = {
             apiKey: "AIzaSyBBcrvThge1YHswamX_pb7KghiCm5ROUH8",
             authDomain: "pcs-updates.firebaseapp.com",
@@ -287,9 +285,12 @@
             messagingSenderId: "424424316130",
             appId: "1:424424316130:web:84f63aab43b4687b08d2bb"
         };
-        // Use environment config if available
-        // const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         // --- CONFIGURATION END ---
+        
+        // --- ADMIN CONFIG (CLIENT-SIDE LOOKUP) ---
+        // This is still client-side logic, but it checks for a specific AUTHENTICATED user ID.
+        // You MUST also enforce this in Firestore Security Rules!
+        const ADMIN_UID = 'YOUR_ADMIN_UID_HERE'; // Replace this with the actual UID of your admin user after they sign up/in once.
 
         // Initialize
         const app = initializeApp(firebaseConfig);
@@ -328,7 +329,8 @@
         const loginModal = document.getElementById('login-modal');
         const submitLoginBtn = document.getElementById('submit-login-btn');
         const closeModalBtn = document.getElementById('close-modal-btn');
-        const adminUser = document.getElementById('admin-user');
+        // Admin login fields updated for Firebase Auth
+        const adminEmail = document.getElementById('admin-email'); 
         const adminPass = document.getElementById('admin-pass');
         const adminStatus = document.getElementById('admin-status');
 
@@ -338,6 +340,9 @@
         
         const errorContainer = document.getElementById('error-container');
         const errorMessage = document.getElementById('error-message');
+        // New success container
+        const successContainer = document.getElementById('success-container');
+        const successMessage = document.getElementById('success-message');
 
         // Tool inputs
         const hoursInput = document.getElementById('hours-input');
@@ -350,28 +355,41 @@
 
         // --- AUTH & INITIALIZATION ---
 
+        // Start anonymous auth for all users to enable likes and timeline reading
         signInAnonymously(auth).catch((e) => {
              console.error("Auth failed", e);
-             handleError("Authentication failed.");
+             handleError("Authentication failed: could not connect to service.");
         });
         
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                // Updated User UI in Header
-                userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-800";
-                userStatus.innerHTML = '<i data-lucide="user-check" class="w-5 h-5"></i>';
-                userStatus.title = `Connected as Member`;
-                
+                // Check if the current authenticated user is the designated admin
+                isAdmin = user.uid === ADMIN_UID; 
+
+                // Updated User UI based on status
+                if (isAdmin) {
+                    userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-400 font-bold border border-red-200 dark:border-red-800";
+                    userStatus.innerHTML = '<i data-lucide="shield-check" class="w-5 h-5"></i>';
+                    userStatus.title = `Admin User: ${user.email || user.uid}`;
+                } else {
+                    userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-800";
+                    userStatus.innerHTML = '<i data-lucide="user-check" class="w-5 h-5"></i>';
+                    userStatus.title = `Connected as Member`;
+                }
+
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<span>Post Update</span><i data-lucide="send" class="w-3.5 h-3.5"></i>';
 
                 initRealtimeListener();
             } else {
                 currentUser = null;
-                userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800 text-gray-400 animate-pulse";
+                isAdmin = false;
+                userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800 text-gray-400";
                 userStatus.innerHTML = '<i data-lucide="user" class="w-5 h-5"></i>';
+                userStatus.title = `Anonymous User`;
                 
+                // Keep the button disabled until signed in as anonymous/admin
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<span>Waiting for Auth...</span><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i>';
             }
@@ -379,7 +397,7 @@
             updateAdminUI();
         });
 
-        // --- UI/VIEW MANAGEMENT ---
+        // --- UI/VIEW MANAGEMENT (No Change) ---
 
         function switchView(viewName) {
             currentView = viewName;
@@ -401,9 +419,8 @@
             tab.addEventListener('click', () => switchView(tab.dataset.view));
         });
 
-        // --- TAG SELECTION LOGIC ---
+        // --- TAG SELECTION LOGIC (No Change) ---
         
-        // Initialize Default Selection
         updateTagSelection(selectedTag);
 
         tagPills.forEach(btn => {
@@ -423,13 +440,13 @@
             });
         }
 
-        // --- ADMIN LOGIN LOGIC ---
+        // --- ADMIN LOGIN LOGIC (MODIFIED FOR FIREBASE AUTH) ---
 
         function updateAdminUI() {
             if (isAdmin) {
                 adminStatus.textContent = 'ADMIN';
                 adminStatus.classList.remove('hidden');
-                loginBtn.textContent = 'Logout';
+                loginBtn.textContent = 'Logout (Admin)';
                 loginBtnMobile.textContent = 'Logout';
                 
                 const logoutHandler = () => handleLogout();
@@ -445,35 +462,67 @@
                 loginBtn.onclick = loginHandler;
                 loginBtnMobile.onclick = loginHandler;
             }
-            applySearchFilter();
+            // Re-render feed to show/hide admin controls
+            applySearchFilter(); 
         }
         
-        function handleLogin() {
-            if (adminUser.value === 'admin' && adminPass.value === 'admin') {
-                isAdmin = true;
-                loginModal.classList.add('hidden');
-                updateAdminUI();
-            } else {
-                handleError("Invalid credentials.");
+        async function handleLogin() {
+            const email = adminEmail.value.trim();
+            const password = adminPass.value;
+
+            if (!email || !password) return handleError("Enter email and password.");
+            
+            submitLoginBtn.disabled = true;
+            submitLoginBtn.textContent = 'Logging in...';
+
+            try {
+                // Sign in with email and password
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                
+                if (userCredential.user.uid === ADMIN_UID) {
+                     // Success: UI will be updated by onAuthStateChanged listener
+                     loginModal.classList.add('hidden');
+                     adminEmail.value = '';
+                     adminPass.value = '';
+                     handleSuccess("Admin login successful!");
+                } else {
+                    // Log out non-admin user who tried to use the admin form
+                    await signOut(auth);
+                    handleError("Credentials invalid or not an authorized admin.");
+                    // Re-sign in anonymously after rejection
+                    await signInAnonymously(auth);
+                }
+
+            } catch (error) {
+                // Firebase error codes handle failure
+                console.error(error);
+                handleError("Login failed. Check email and password.");
+            } finally {
+                submitLoginBtn.disabled = false;
+                submitLoginBtn.textContent = 'Login';
             }
         }
 
-        function handleLogout() {
-            isAdmin = false;
-            adminUser.value = 'admin';
-            adminPass.value = 'admin';
-            updateAdminUI();
+        async function handleLogout() {
+            // Logs out the current admin user
+            await signOut(auth);
+            // Re-sign in anonymously immediately
+            await signInAnonymously(auth);
+            handleSuccess("Logged out of Admin account.");
         }
 
         submitLoginBtn.addEventListener('click', handleLogin);
-        closeModalBtn.addEventListener('click', () => loginModal.classList.add('hidden'));
+        closeModalBtn.addEventListener('click', () => {
+            adminEmail.value = '';
+            adminPass.value = '';
+            loginModal.classList.add('hidden');
+        });
 
-        // --- FIRESTORE DATA ---
+        // --- FIRESTORE DATA (No Change) ---
 
         function initRealtimeListener() {
             if (!currentUser) return;
             
-            // Using the root collection 'posts' for this artifact
             onSnapshot(collection(db, COLLECTION_NAME), (snapshot) => {
                 posts = snapshot.docs.map(doc => ({ 
                     id: doc.id, 
@@ -484,11 +533,11 @@
                 applySearchFilter();
             }, (error) => {
                 console.error(error);
-                if(error.code === 'permission-denied') handleError("Permission denied.");
+                if(error.code === 'permission-denied') handleError("Permission denied. Check Firestore rules.");
             });
         }
 
-        // --- SEARCH FUNCTIONALITY ---
+        // --- SEARCH FUNCTIONALITY (No Change) ---
         searchInput.addEventListener('input', applySearchFilter);
 
         function applySearchFilter() {
@@ -543,7 +592,6 @@
                     ? `
                         <input type="text" id="edit-title-${post.id}" class="w-full p-2 mb-2 font-bold text-lg border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="${escapeHtml(post.title || '')}" placeholder="Title">
                         <textarea id="edit-content-${post.id}" class="w-full h-32 p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">${escapeHtml(post.content || '')}</textarea>
-                        <!-- Simple select for edit mode for simplicity -->
                         <select id="edit-tag-${post.id}" class="w-full p-2 mt-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
                             <option value="General" ${post.tag === 'General' ? 'selected' : ''}>General</option>
                             <option value="Feature" ${post.tag === 'Feature' ? 'selected' : ''}>Feature</option>
@@ -587,14 +635,13 @@
                 `;
 
                 return `
-                    <div class="group relative pl-6 pb-8 last:pb-0 border-l border-gray-200 dark:border-gray-800">
+                    <div class="post-container group relative pl-6 pb-8 last:pb-0">
                         <div class="timeline-dot absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full bg-blue-500 ring-4 ring-gray-50 dark:ring-gray-950"></div>
                         
                         <div class="flex flex-col gap-1.5">
-                            <!-- Header Bar -->
                             <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="font-medium text-gray-900 dark:text-gray-200 text-xs">Member</span>
+                                    <span class="font-medium text-gray-900 dark:text-gray-200 text-xs">${isAdmin ? 'Admin Post' : 'Member'}</span>
                                     <span class="text-xs text-gray-400">
                                         &bull; ${formatRelativeTime(post.createdAt)}
                                     </span>
@@ -630,7 +677,7 @@
                     <a href="${safeUrl}" target="_blank" rel="noopener noreferrer"
                        class="flex items-center gap-3 p-3 mt-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full max-w-sm group">
                         <div class="h-8 w-8 flex items-center justify-center rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-110 transition-transform">
-                            <i data-lucide="external-link" class="w-4 h-4"></i>
+                            <i data-lucide="external-link" class="w-4 h-4" aria-label="External Link"></i>
                         </div>
                         <div class="overflow-hidden">
                             <p class="text-xs font-medium text-blue-600 dark:text-blue-400 truncate">${safeUrl}</p>
@@ -652,7 +699,7 @@
             const currentUserId = currentUser ? currentUser.uid : null;
 
             if (!currentUserId) {
-                 handleError("Authentication required.");
+                 handleError("Authentication required to interact.");
                  return;
             }
 
@@ -661,24 +708,28 @@
                     toggleReaction(postId, currentUserId, hasReacted);
                     break;
                 case 'edit-post':
-                    toggleEdit(postId, false);
+                    if (isAdmin) toggleEdit(postId, false);
+                    else handleError("Admin privileges required to edit.");
                     break;
                 case 'save-edit':
-                    toggleEdit(postId, true);
+                    if (isAdmin) toggleEdit(postId, true);
+                    else handleError("Admin privileges required to save.");
                     break;
                 case 'delete-post':
-                    deletePost(postId);
+                    if (isAdmin) deletePost(postId);
+                    else handleError("Admin privileges required to delete.");
                     break;
             }
         });
 
         submitBtn.addEventListener('click', async () => {
-            const title = titleInput.value.trim(); // New Title
+            const title = titleInput.value.trim(); 
             const content = contentInput.value.trim();
             const link = linkInput.value.trim();
-            const tag = selectedTag; // Use the selected variable
+            const tag = selectedTag; 
 
-            if (!currentUser) return handleError("Not authenticated.");
+            // Only allow posting if the user is an Admin
+            if (!isAdmin) return handleError("Only the Admin can post new updates.");
 
             if (!content && !link && !title) {
                 composerCard.classList.add('flash-red');
@@ -691,7 +742,7 @@
 
             try {
                 await addDoc(collection(db, COLLECTION_NAME), {
-                    title, // Save Title
+                    title,
                     content,
                     link,
                     tag,
@@ -699,14 +750,14 @@
                     createdAt: serverTimestamp(),
                     reactions: {}
                 });
-                titleInput.value = ''; // Clear Title
+                titleInput.value = '';
                 contentInput.value = '';
                 linkInput.value = '';
-                // Reset tag to General
                 selectedTag = 'General';
                 updateTagSelection('General');
+                handleSuccess("Update posted successfully!"); // NEW SUCCESS MESSAGE
             } catch (err) {
-                handleError("Failed to post.");
+                handleError("Failed to post. Check your Firestore Security Rules.");
                 console.error(err);
             } finally {
                 submitBtn.disabled = false;
@@ -723,7 +774,9 @@
                 let newReactions = { ...post.reactions };
                 if (hasReacted) delete newReactions[userId];
                 else newReactions[userId] = true;
-                await updateDoc(docRef, { reactions: newReactions });
+                // Note: Anonymous users can write to the 'reactions' map, 
+                // but the Firestore rules must prevent them from modifying other fields!
+                await updateDoc(docRef, { reactions: newReactions }); 
             } catch (e) { handleError("Failed to update reaction."); }
         };
 
@@ -737,6 +790,7 @@
                 const originalPost = posts.find(p => p.id === id);
 
                 try {
+                    // Update only mutable fields while preserving createdAt/authorId/reactions
                     await setDoc(doc(db, COLLECTION_NAME, id), { 
                         title: newTitle,
                         content: newContent, 
@@ -748,6 +802,7 @@
                     });
                     editingPostId = null;
                     applySearchFilter();
+                    handleSuccess("Post saved successfully!");
                 } catch (e) { handleError("Failed to save."); }
             } else {
                 editingPostId = id;
@@ -757,13 +812,16 @@
 
         const deletePost = async (id) => {
             if (!isAdmin) return;
-            try { await deleteDoc(doc(db, COLLECTION_NAME, id)); } 
-            catch(e) { handleError("Delete failed"); }
+            if (!confirm("Are you sure you want to delete this post?")) return;
+            try { 
+                await deleteDoc(doc(db, COLLECTION_NAME, id));
+                handleSuccess("Post deleted."); 
+            } 
+            catch(e) { handleError("Delete failed. Check security rules."); }
         };
 
-        // --- UTILS ---
+        // --- UTILS (No Change) ---
         
-        // Time Calculator
         function calculateDecimalTime() {
             const hours = parseInt(hoursInput.value) || 0;
             const minutes = parseInt(minutesInput.value) || 0;
@@ -773,7 +831,6 @@
         hoursInput.addEventListener('input', calculateDecimalTime);
         minutesInput.addEventListener('input', calculateDecimalTime);
 
-        // Percentage Calculator
         function calculatePercentage() {
             const x = parseFloat(percentX.value) || 0;
             const y = parseFloat(percentY.value) || 0;
@@ -826,6 +883,12 @@
             errorMessage.textContent = msg;
             errorContainer.classList.remove('hidden');
             setTimeout(() => errorContainer.classList.add('hidden'), 5000);
+        }
+
+        function handleSuccess(msg) {
+            successMessage.textContent = msg;
+            successContainer.classList.remove('hidden');
+            setTimeout(() => successContainer.classList.add('hidden'), 5000);
         }
         
         function escapeHtml(text) {
