@@ -323,10 +323,10 @@
         let currentUser = null;
         let isAdmin = false;
         let posts = [];
-        let tools = []; // NEW: Tools state
+        let tools = []; 
         let filteredPosts = [];
         let editingPostId = null;
-        let editingToolId = null; // NEW: Tool editing state
+        let editingToolId = null; 
         let currentView = 'timeline';
         let selectedTag = 'General';
 
@@ -358,13 +358,13 @@
 
         const timelineView = document.getElementById('timeline-view');
         const toolsView = document.getElementById('tools-view');
-        const pcstoolsView = document.getElementById('pcstools-view'); // NEW
+        const pcstoolsView = document.getElementById('pcstools-view'); 
         const navTabs = document.querySelectorAll('.tab-btn');
         
         const errorContainer = document.getElementById('error-container');
         const errorMessage = document.getElementById('error-message');
-        const successContainer = document.getElementById('success-container'); // RESTORED
-        const successMessage = document.getElementById('success-message');     // RESTORED
+        const successContainer = document.getElementById('success-container'); 
+        const successMessage = document.getElementById('success-message');     
 
         // Tool inputs
         const hoursInput = document.getElementById('hours-input');
@@ -404,7 +404,7 @@
                 submitBtn.innerHTML = '<span>Post Update</span><i data-lucide="send" class="w-3.5 h-3.5"></i>';
 
                 initRealtimeListener();
-                initToolsListener(); // NEW
+                initToolsListener(); 
             } else {
                 currentUser = null;
                 userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800 text-gray-400 animate-pulse";
@@ -421,7 +421,6 @@
 
         function switchView(viewName) {
             currentView = viewName;
-            // MODIFIED: Added pcstoolsView
             [timelineView, toolsView, pcstoolsView].forEach(view => {
                 view.classList.toggle('hidden', view.id !== `${viewName}-view`);
             });
@@ -434,7 +433,6 @@
                 tab.classList.toggle('text-gray-500', !isActive);
             });
             
-            // NEW: Handle Admin Panel visibility
             if (viewName === 'pcstools') {
                 updateToolsAdminPanel(); 
             }
@@ -448,7 +446,6 @@
 
         // --- TAG SELECTION LOGIC ---
         
-        // Initialize Default Selection
         updateTagSelection(selectedTag);
 
         tagPills.forEach(btn => {
@@ -491,7 +488,6 @@
                 loginBtnMobile.onclick = loginHandler;
             }
             
-            // NEW: Update visibility of tools admin panel if in PCS Tools view
             if (currentView === 'pcstools') {
                 updateToolsAdminPanel();
             }
@@ -510,7 +506,7 @@
                 isAdmin = true;
                 loginModal.classList.add('hidden');
                 updateAdminUI();
-                handleSuccess("Admin login successful."); // RESTORED
+                handleSuccess("Admin login successful."); 
             } else {
                 handleError("Invalid credentials.");
             }
@@ -521,7 +517,7 @@
             adminUser.value = ADMIN_USERNAME;
             adminPass.value = ADMIN_PASSWORD;
             updateAdminUI();
-            handleSuccess("Logged out of Admin account."); // RESTORED
+            handleSuccess("Logged out of Admin account."); 
         }
 
         submitLoginBtn.addEventListener('click', handleLogin);
@@ -546,11 +542,10 @@
                 applySearchFilter();
             }, (error) => {
                 console.error(error);
-                if(error.code === 'permission-denied') handleError("Permission denied.");
+                if(error.code === 'permission-denied') handleError("Permission denied loading posts.");
             });
         }
         
-        // NEW: Tools Listener
         function initToolsListener() {
             onSnapshot(collection(db, 'tools'), (snapshot) => {
                 tools = snapshot.docs.map(doc => ({ 
@@ -562,7 +557,9 @@
                 if (isAdmin) renderManagedTools();
             }, (error) => {
                 console.error("Tools listener failed", error);
-                handleError("Failed to load tools.");
+                // Inform user about security rules if permission is denied
+                if(error.code === 'permission-denied') handleError("Tools listener failed: Missing or insufficient permissions. Check Firestore Security Rules for the 'tools' collection.");
+                else handleError("Failed to load tools.");
             });
         }
 
@@ -584,13 +581,14 @@
             renderPosts(filteredPosts);
         }
 
-        // --- POST RENDERING & CRUD (MODIFIED FOR MEMBER EDIT/DELETE) ---
+        // --- POST RENDERING & CRUD ---
 
         function isImageUrl(url) {
             return (url || '').match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) !== null;
         }
 
         function renderPosts(currentPosts) {
+            // ... (rest of renderPosts logic remains the same)
             if (currentPosts.length === 0) {
                 const message = searchInput.value.trim() ? "No results found." : "No updates yet.";
                 feedContainer.innerHTML = `
@@ -610,16 +608,13 @@
                 const reactionCount = Object.keys(postReactions).length;
                 const hasReacted = currentUserId !== 'temp-anon-user' && postReactions[currentUserId];
                 
-                // RESTORED: Check for Post Authorship
                 const isAuthor = post.authorId === currentUserId;
 
-                // Determine Tag Style
                 let tagColorClass = "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
                 if (post.tag === 'Feature') tagColorClass = "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
                 if (post.tag === 'Bug') tagColorClass = "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
                 if (post.tag === 'Announcement') tagColorClass = "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
 
-                // Post Content (Edit Mode vs. View Mode)
                 const postContentHtml = isCurrentEditing
                     ? `
                         <input type="text" id="edit-title-${post.id}" class="w-full p-2 mb-2 font-bold text-lg border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="${escapeHtml(post.title || '')}" placeholder="Title">
@@ -638,7 +633,6 @@
                         ${post.link ? renderMedia(post.link) : ''}
                       `;
 
-                // MODIFIED: Post Controls (Admin OR Author)
                 const postControls = (isAdmin || isAuthor) ? `
                     <div class="flex gap-2">
                         <button data-action="${isCurrentEditing ? 'save-edit' : 'edit-post'}" 
@@ -700,7 +694,6 @@
         
         function renderMedia(url) {
             const safeUrl = escapeHtml(url);
-            // RESTORED: Added aria-label to external link icon
             if (isImageUrl(url)) {
                 return `
                     <div class="mt-3 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 max-w-md">
@@ -757,6 +750,7 @@
                 return;
             }
             
+            // Render the list of tools for editing/deleting
             managedToolsList.innerHTML = `
                 <h4 class="text-sm font-semibold mb-2">Available Tools (${tools.length})</h4>
                 ${tools.map(tool => `
@@ -779,7 +773,6 @@
 
         // --- EVENTS ---
         
-        // MODIFIED: Post Event Listener (RESTORED MEMBER EDIT/DELETE LOGIC)
         feedContainer.addEventListener('click', (e) => {
             const target = e.target.closest('[data-action]');
             if (!target) return;
@@ -794,7 +787,6 @@
                  return;
             }
             
-            // NEW: Find the post and determine permission
             const post = posts.find(p => p.id === postId);
             const isAuthor = post && post.authorId === currentUserId;
             const canEditOrDelete = isAdmin || isAuthor;
@@ -817,6 +809,61 @@
                     break;
             }
         });
+        
+        // NEW: Tool Admin Button Logic (Add/Save Tool)
+        addToolBtn.addEventListener('click', async () => {
+            const title = toolTitleInput.value.trim();
+            const description = toolDescriptionInput.value.trim();
+            const link = toolLinkInput.value.trim();
+            
+            if (!isAdmin) return handleError("Only Admin can manage tools.");
+
+            if (!title || !description || !link) {
+                return handleError("All fields are required to add/save a tool.");
+            }
+
+            addToolBtn.disabled = true;
+            addToolBtn.textContent = editingToolId ? 'Saving...' : 'Adding...';
+
+            try {
+                const toolData = {
+                    title,
+                    description,
+                    link,
+                    createdAt: serverTimestamp()
+                };
+
+                if (editingToolId) {
+                    // Update existing tool
+                    await setDoc(doc(db, 'tools', editingToolId), toolData);
+                    handleSuccess("Tool updated successfully!");
+                } else {
+                    // Add new tool
+                    await addDoc(collection(db, 'tools'), toolData);
+                    handleSuccess("New tool added successfully!");
+                }
+                
+                // Reset form
+                toolTitleInput.value = '';
+                toolDescriptionInput.value = '';
+                toolLinkInput.value = '';
+                editingToolId = null;
+                addToolBtn.textContent = 'Add New Tool';
+            } catch (err) {
+                if (err.code === 'permission-denied') {
+                    handleError("Action blocked. Missing or insufficient permissions. Check your Firestore Security Rules for the 'tools' collection.");
+                } else {
+                    handleError("Failed to save tool.");
+                }
+                console.error(err);
+            } finally {
+                addToolBtn.disabled = false;
+                lucide.createIcons();
+            }
+        });
+
+        // The rest of the event listeners remain the same for post CRUD and tool list actions
+        // ... (existing post CRUD functions and tool management event delegation)
 
         submitBtn.addEventListener('click', async () => {
             const title = titleInput.value.trim();
@@ -841,7 +888,7 @@
                     content,
                     link,
                     tag,
-                    authorId: isAdmin ? 'admin' : currentUser.uid, // Only use 'admin' if actually logged in as hardcoded admin
+                    authorId: isAdmin ? 'admin' : currentUser.uid, 
                     createdAt: serverTimestamp(),
                     reactions: {}
                 });
@@ -850,7 +897,7 @@
                 linkInput.value = '';
                 selectedTag = 'General';
                 updateTagSelection('General');
-                handleSuccess("Update posted successfully!"); // RESTORED
+                handleSuccess("Update posted successfully!"); 
             } catch (err) {
                 handleError("Failed to post. Check your Firestore Security Rules.");
                 console.error(err);
@@ -873,7 +920,6 @@
             } catch (e) { handleError("Failed to update reaction."); }
         };
 
-        // MODIFIED: Removed strict isAdmin check as permission is handled in event listener
         const toggleEdit = async (id, currentlyEditing) => {
             if (!id) return; 
 
@@ -896,7 +942,7 @@
                     });
                     editingPostId = null;
                     applySearchFilter();
-                    handleSuccess("Post saved successfully!"); // RESTORED
+                    handleSuccess("Post saved successfully!"); 
                 } catch (e) { handleError("Failed to save."); }
             } else {
                 editingPostId = id;
@@ -904,18 +950,16 @@
             }
         };
 
-        // MODIFIED: Removed strict isAdmin check as permission is handled in event listener
         const deletePost = async (id) => {
             if (!id) return;
             if (!confirm("Are you sure you want to delete this post?")) return;
             try { 
                 await deleteDoc(doc(db, COLLECTION_NAME, id));
-                handleSuccess("Post deleted."); // RESTORED
+                handleSuccess("Post deleted."); 
             } 
             catch(e) { handleError("Delete failed. Check security rules."); }
         };
         
-        // NEW: Event delegation for tool management buttons
         pcstoolsView.addEventListener('click', (e) => {
             const target = e.target.closest('[data-action]');
             if (!target || !isAdmin) return;
@@ -951,7 +995,7 @@
                 await deleteDoc(doc(db, 'tools', toolId));
                 handleSuccess("Tool deleted successfully.");
             } catch (e) {
-                handleError("Failed to delete tool.");
+                handleError("Failed to delete tool. Check security rules.");
                 console.error(e);
             }
         }
@@ -959,7 +1003,6 @@
 
         // --- UTILS ---
         
-        // Time Calculator
         function calculateDecimalTime() {
             const hours = parseInt(hoursInput.value) || 0;
             const minutes = parseInt(minutesInput.value) || 0;
@@ -969,7 +1012,6 @@
         hoursInput.addEventListener('input', calculateDecimalTime);
         minutesInput.addEventListener('input', calculateDecimalTime);
 
-        // Percentage Calculator
         function calculatePercentage() {
             const x = parseFloat(percentX.value) || 0;
             const y = parseFloat(percentY.value) || 0;
@@ -1024,7 +1066,6 @@
             setTimeout(() => errorContainer.classList.add('hidden'), 5000);
         }
         
-        // RESTORED: Success Notification Handler
         function handleSuccess(msg) {
             successMessage.textContent = msg;
             successContainer.classList.remove('hidden');
