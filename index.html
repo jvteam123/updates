@@ -211,7 +211,10 @@
 
         // --- AUTH & INITIALIZATION ---
 
-        signInAnonymously(auth).catch((e) => handleError(`Auth Failed: ${e.message}`));
+        signInAnonymously(auth).catch((e) => {
+             console.error("Anonymous Sign-in Failed. Ensure Anonymous Auth is enabled in your Firebase Console.", e);
+             handleError("Authentication failed. See console. Did you enable Anonymous Auth in Firebase?");
+        });
         
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -222,7 +225,14 @@
             } else {
                 currentUser = null;
                 userStatus.className = "h-8 w-8 rounded-full bg-gray-200 animate-pulse";
-                userStatus.title = "Anonymous User";
+                userStatus.title = "Anonymous User (Auth Failed)";
+                // Stop the loading indicator if auth failed
+                feedContainer.innerHTML = `
+                    <div class="text-center py-12 text-gray-400">
+                        <i data-lucide="alert-triangle" class="w-8 h-8 mx-auto mb-4 text-red-500"></i>
+                        <p class="text-red-500">Failed to load timeline. Check Authentication settings in Firebase Console.</p>
+                    </div>`;
+                lucide.createIcons();
             }
             updateAdminUI();
         });
@@ -296,6 +306,9 @@
         // --- FIRESTORE DATA ---
 
         function initRealtimeListener() {
+            // Guard against running listeners before authentication is complete
+            if (!currentUser) return;
+            
             onSnapshot(collection(db, COLLECTION_NAME), (snapshot) => {
                 posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 
@@ -391,6 +404,12 @@
 
             if (!content && !link) return;
 
+            // NEW CHECK: Prevent posting if authentication failed
+            if (!currentUser || !currentUser.uid) {
+                handleError("Cannot post. Authentication failed. Please enable Anonymous Auth in Firebase Console.");
+                return;
+            }
+
             submitBtn.disabled = true;
             submitBtn.innerHTML = 'Posting...';
             lucide.createIcons();
@@ -406,7 +425,7 @@
                 linkInput.value = '';
                 linkContainer.classList.add('hidden');
             } catch (err) {
-                handleError("Failed to post update. Check console.");
+                handleError("Failed to post update. Check console for Firestore rules issues.");
                 console.error(err);
             } finally {
                 submitBtn.disabled = false;
@@ -429,8 +448,7 @@
                     await setDoc(doc(db, COLLECTION_NAME, id), { 
                         content: newContent, 
                         link: newLink,
-                        // Note: Using setDoc without merge: true requires all fields be included or you risk overwriting.
-                        // I will explicitly include the non-updated fields (authorId, createdAt) for safety.
+                        // Preserve original fields
                         authorId: posts.find(p => p.id === id).authorId,
                         createdAt: posts.find(p => p.id === id).createdAt
                     });
@@ -452,8 +470,7 @@
         // Delete Post
         window.deletePost = async (id) => {
             if (!isAdmin) return;
-            // IMPORTANT: Since we are not using window.confirm() as per instructions, we need a custom modal for confirmation.
-            // For rapid deployment, I will proceed with direct delete but if this were a production app, a modal UI is required.
+            // No window.confirm() per rules, proceeding with direct delete.
             try {
                 await deleteDoc(doc(db, COLLECTION_NAME, id));
             } catch(e) { console.error(e); handleError("Delete failed"); }
@@ -504,7 +521,7 @@
         function handleError(msg) {
             errorMessage.textContent = msg;
             errorContainer.classList.remove('hidden');
-            setTimeout(() => errorContainer.classList.add('hidden'), 5000);
+            setTimeout(() => errorContainer.classList.add('hidden'), 8000); // Extended timeout for critical errors
         }
         
         function escapeHtml(text) {
