@@ -58,7 +58,7 @@
         <header class="mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex-grow">
                 <h1 class="text-2xl font-bold tracking-tight">PCS Updates</h1>
-                <p class="text-gray-500 text-sm mt-1">Maintained via Firestore (HTML Version)</p>
+                <!-- Removed: Maintained via Firestore (HTML Version) -->
             </div>
             
             <div class="flex items-center gap-4">
@@ -491,12 +491,15 @@
                 lucide.createIcons();
                 return;
             }
+            
+            // FIX: Safely retrieve currentUser.uid for function calls in the template
+            const currentUserId = currentUser ? currentUser.uid : '';
 
             feedContainer.innerHTML = currentPosts.map(post => {
                 const isCurrentEditing = editingPostId === post.id;
                 const postReactions = post.reactions;
                 const reactionCount = Object.keys(postReactions).length;
-                const hasReacted = currentUser && postReactions[currentUser.uid];
+                const hasReacted = currentUserId && postReactions[currentUserId];
 
                 // Post Content (Edit Mode vs. View Mode)
                 const postContentHtml = isCurrentEditing
@@ -527,16 +530,15 @@
                     </div>
                 ` : '';
 
-                // Reaction Button
+                // Reaction Button - uses the safe currentUserId
                 const reactionButton = `
-                    <button onclick="toggleReaction('${post.id}', '${currentUser.uid}', ${hasReacted})"
+                    <button onclick="toggleReaction('${post.id}', '${currentUserId}', ${hasReacted})"
                             class="flex items-center gap-1.5 p-1 px-2 text-sm rounded-full transition-colors ${hasReacted ? 'bg-red-500 text-white hover:bg-red-600' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'}">
                         <i data-lucide="heart" class="w-4 h-4 fill-current ${hasReacted ? '' : 'fill-none'}"></i>
                         <span class="font-medium">${reactionCount}</span>
                     </button>
                 `;
 
-                // **FIX: Use ternary operator to safely access substring**
                 const displayedAuthorId = post.authorId ? escapeHtml(post.authorId).substring(0, 8) + '...' : 'Anonymous';
 
                 return `
@@ -646,8 +648,8 @@
 
         // Toggle Reaction
         window.toggleReaction = async (postId, userId, hasReacted) => {
-            if (!userId) {
-                handleError("Cannot react. User authentication is required.");
+            if (!userId || userId === 'temp-anon-user') {
+                handleError("Cannot react. User authentication is required or pending.");
                 return;
             }
             
