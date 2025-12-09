@@ -24,365 +24,68 @@
         }
     </script>
     <style>
-    body { font-family: 'Inter', sans-serif; }
-    /* Adjusted timeline-dot ring color for better contrast */
-    .timeline-dot {
-        box-shadow: 0 0 0 4px #f9fafb; 
-    }
-    @media (prefers-color-scheme: dark) {
-        .timeline-dot { box-shadow: 0 0 0 4px #030712; }
-    }
-    .converter-input {
-        appearance: textfield; 
-    }
-    .converter-input::-webkit-outer-spin-button,
-    .converter-input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-    /* Keyframes for flash effect on empty post click */
-    @keyframes flash-red {
-        0%, 100% { border-color: rgb(229 231 235); }
-        50% { border-color: rgb(239 68 68); }
-    }
-    .flash-red {
-        animation: flash-red 0.5s ease-in-out;
-    }
-    .tag-pill.selected {
-        background-color: #2563eb; /* blue-600 */
-        color: white;
-        border-color: #2563eb;
-    }
-    .dark .tag-pill.selected {
-        background-color: #3b82f6; /* blue-500 */
-        color: white;
-        border-color: #3b82f6;
-    }
-    /* Custom scrollbar for better aesthetics */
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-        background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-        background-color: #cbd5e1;
-        border-radius: 4px;
-    }
-    .dark ::-webkit-scrollbar-thumb {
-        background-color: #334155;
-    }
-    
-    /* Restored: Timeline Structure Enhancement */
-    #posts-feed {
-        /* Add a persistent left border to the whole feed container */
-        border-left: 1px solid #e5e7eb; /* gray-200 */
-    }
-    .dark #posts-feed {
-         border-left: 1px solid #1f2937; /* gray-800 */
-    }
-    .post-container {
-        /* Reset the left border on individual posts */
-        border-left: none !important;
-    }
-
-    /* --- TSC HELPER STYLES (SCOPED) --- */
-    #tsc-helper-view .container-wrapper {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: calc(100vh - 100px); /* Adjusting for header */
-        padding: 1rem;
-    }
-    /* Ensure h2/h3 text is dark in Light Mode (default) and light in Dark Mode */
-    #tsc-helper-view h2, #tsc-helper-view h3 { color: inherit; /* Inherit from body (gray-900 in Light mode) */ }
-    .dark #tsc-helper-view h2, .dark #tsc-helper-view h3 { color: #f3f4f6; } 
-
-    /* Define Light Mode container styles */
-    #tsc-helper-view .container {
-        background-color: white; /* Explicitly white for Light Mode */
-        padding: 2.5rem;
-        border-radius: 0.75rem;
-        border: 1px solid #e5e7eb; /* gray-200 border */
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-        text-align: center;
-        width: 100%;
-        max-width: 1400px;
-    }
-    /* Dark Mode Container */
-    .dark #tsc-helper-view .container {
-        background-color: #111827; /* gray-900 */
-        border: 1px solid #1f2937; /* gray-800 */
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
-    }
-    
-    /* Table Borders and Structure (Default/Light Mode) */
-    #tsc-helper-view .time-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 1.5rem;
-        border: 1px solid #d1d5db; /* Light Mode: gray-300 border */
-        border-radius: 0.5rem;
-        overflow: hidden;
-        font-size: 0.9rem;
-    }
-    /* Dark Mode Table Borders and Structure */
-    .dark #tsc-helper-view .time-table {
-         border: 1px solid #1f2937; /* Dark Mode: gray-800 border */
-    }
-
-    #tsc-helper-view .time-table th, #tsc-helper-view .time-table td {
-        padding: 0.5rem 0.75rem;
-        text-align: left;
-        border-bottom: 1px solid #d1d5db; /* Light Mode: gray-300 border */
-        vertical-align: middle;
-    }
-    /* Dark Mode Table Cell Bottom Border */
-    .dark #tsc-helper-view .time-table th, .dark #tsc-helper-view .time-table td {
-        border-bottom: 1px solid #1f2937; /* Dark Mode: gray-800 border */
-    }
-
-    /* Table Header (th) Colors (Default/Light Mode) */
-    #tsc-helper-view .time-table th {
-        background-color: #f3f4f6; /* Light Mode: gray-100 header background */
-        color: #111827; /* Light Mode: dark text */
-        font-weight: 600;
-    }
-    /* Dark Mode Table Header (th) Colors */
-    .dark #tsc-helper-view .time-table th {
-        background-color: #1f2937; /* Dark Mode: gray-800 header background */
-        color: #f3f4f6; /* Dark Mode: gray-100 text */
-    }
-    
-    /* Table Data (td) Text Color (Default/Light Mode) */
-    #tsc-helper-view .time-table td { 
-        font-family: monospace; 
-        font-size: 0.95rem; 
-        color: #4b5563; /* New: gray-600 text for light mode */
-    }
-    /* Dark Mode Table Data (td) Text Color */
-    .dark #tsc-helper-view .time-table td { 
-        color: #d1d5db; /* Light gray text for dark mode */ 
-    }
-    
-    #tsc-helper-view .time-table tbody tr:last-child td { border-bottom: none; }
-    
-    /* Table Row Hover State (Default/Light Mode) */
-    #tsc-helper-view .time-table tbody tr:hover { 
-        background-color: #f9fafb; /* Light Mode: gray-50 hover state */ 
-    }
-    /* Dark Mode Table Row Hover State */
-    .dark #tsc-helper-view .time-table tbody tr:hover { 
-        background-color: #1f2937; /* Dark hover state */ 
-    }
-    
-    /* Select Dropdown in Table (Default/Light Mode) */
-    #tsc-helper-view .time-table select {
-        width: 100%; 
-        background-color: white; /* Light background */
-        color: #111827; /* Dark text */
-        border: 1px solid #d1d5db; /* Light border */ 
-        border-radius: 0.375rem; 
-        padding: 0.35rem;
-        font-family: "Inter", sans-serif; 
-        font-size: 0.85rem;
-    }
-    /* Dark Mode Select Dropdown in Table */
-    .dark #tsc-helper-view .time-table select {
-        background-color: #111827; /* Dark background */
-        color: #f3f4f6; /* Light text */
-        border: 1px solid #374151; /* Dark border */
-    }
-    #tsc-helper-view .time-table select:focus {
-        outline: none; border-color: #2563eb; /* blue-600 */
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4);
-    }
-
-    /* Editable Date Input in Table (Default/Light Mode) */
-    #tsc-helper-view .time-table input.editable-date {
-        background-color: transparent;
-        border: none;
-        color: #4b5563; /* Dark text for light mode */
-        padding: 0;
-        font-size: 0.95rem;
-        font-family: monospace;
-        width: 100%;
-    }
-    /* Dark Mode Editable Date Input in Table */
-    .dark #tsc-helper-view .time-table input.editable-date {
-        color: #d1d5db; /* Light text for dark mode */
-    }
-    #tsc-helper-view .time-table input.editable-date:focus {
-        background-color: #f3f4f6; /* Light background on focus */
-        outline: 1px solid #2563eb; /* blue-600 */
-        border-radius: 2px;
-    }
-    /* Dark Mode Editable Date Input Focus */
-    .dark #tsc-helper-view .time-table input.editable-date:focus {
-        background-color: #1f2937; /* Dark background on focus */
-    }
-    
-    /* Button Styles (Base and Modifiers) */
-    #tsc-helper-view .button {
-        padding: 0.75rem 1.5rem; margin: 0.5rem; border-radius: 0.375rem;
-        cursor: pointer; font-size: 1rem; font-weight: 500;
-        transition: all 0.2s ease-in-out; border: none;
-        /* Default styles for Light Mode: applies to Insert Task & Clear Data,
-           but is overridden by their inline Tailwind classes (bg-green-600/bg-red-700) */
-        background-color: #f3f4f6; /* Light gray background for default */
-        color: #1f2937; /* Dark text for default */
-    }
-    #tsc-helper-view .button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        background-color: #e5e7eb; /* Slightly darker light gray on hover */
-    }
-    
-    /* Primary Blue Button (Light Mode) */
-    #tsc-helper-view .button-primary { 
-        background-color: #2563eb; 
-        color: white; 
-    }
-    #tsc-helper-view .button-primary:hover { 
-        background-color: #1d4ed8; 
-    }
-    
-    /* Secondary Button (Light Mode FIX for Copy Table & Settings) */
-    #tsc-helper-view .button-secondary { 
-        background-color: #f3f4f6; /* Light gray background */
-        color: #1f2937; /* Dark text */
-    }
-    #tsc-helper-view .button-secondary:hover { 
-        background-color: #e5e7eb; /* Slightly darker light gray on hover */
-    }
-    
-    /* Dark Mode Overrides for Buttons */
-    .dark #tsc-helper-view .button {
-        background-color: #374151; /* gray-700 for default dark */
-        color: #f3f4f6; /* gray-100 for default dark */
-    }
-    .dark #tsc-helper-view .button:hover {
-        background-color: #4b5563; /* gray-600 for default dark hover */
-    }
-    .dark #tsc-helper-view .button-primary { 
-        background-color: #3b82f6; /* blue-500 for dark primary */ 
-    }
-    .dark #tsc-helper-view .button-primary:hover { 
-        background-color: #2563eb; /* blue-600 for dark primary hover */
-    }
-    .dark #tsc-helper-view .button-secondary { 
-        background-color: #1f2937; /* gray-800 for dark secondary */
-        color: #f3f4f6; /* gray-100 for dark secondary */
-    }
-    .dark #tsc-helper-view .button-secondary:hover { 
-        background-color: #374151; /* gray-700 for dark secondary hover */
-    }
-    
-    /* Button Remove (used in modals for delete) */
-    #tsc-helper-view .button-remove {
-        background-color: #be123c; color: white;
-        padding: 0.3rem 0.6rem; border-radius: 0.25rem;
-        font-size: 0.75rem; font-weight: 600; cursor: pointer;
-        border: none; transition: background-color 0.2s;
-    }
-    #tsc-helper-view .button-remove:hover { background-color: #9f1239; }
-    
-    /* Modal Styles (Ensure Light Mode support) */
-    #tsc-helper-view .modal {
-        display: none; position: fixed; z-index: 1000; left: 0; top: 0;
-        width: 100%; height: 100%; overflow: auto;
-        background-color: rgba(0,0,0,0.75);
-        justify-content: center; align-items: center;
-    }
-    /* Light Mode Modal Content */
-    #tsc-helper-view .modal-content {
-        background-color: white; 
-        border: 1px solid #d1d5db; 
-        color: #111827;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        margin: auto; padding: 2rem;
-        width: 90%; border-radius: 0.75rem; 
-        position: relative;
-    }
-    /* Dark Mode Modal Content (Override) */
-    .dark #tsc-helper-view .modal-content {
-        background-color: #111827; /* gray-900 */ 
-        border: 1px solid #1f2937; /* gray-800 */ 
-        color: #f3f4f6;
-    }
-    #tsc-helper-view .close-button {
-        color: #9ca3af; font-size: 28px; font-weight: bold;
-        position: absolute; top: 15px; right: 25px;
-        cursor: pointer; transition: color 0.2s ease;
-    }
-    .dark #tsc-helper-view .close-button:hover, .dark #tsc-helper-view .close-button:focus { color: #f3f4f6; }
-    #tsc-helper-view .form-group { margin-bottom: 1rem; }
-    /* Modal Form Styles (Ensure Light Mode support) */
-    #tsc-helper-view .form-group label { 
-        display: block; font-size: 0.875rem; font-weight: 500; 
-        color: #374151; /* Light Mode Text */ 
-        margin-bottom: 0.5rem; text-align: left; 
-    }
-    .dark #tsc-helper-view .form-group label { 
-        color: #d1d5db; /* Dark Mode Text */ 
-    }
-    #tsc-helper-view .form-group input, #tsc-helper-view .form-group select {
-        width: 100%; 
-        background-color: white; /* Light Mode background */ 
-        color: #111827; /* Light Mode text */
-        border: 1px solid #d1d5db; /* Light Mode border */ 
-        border-radius: 0.375rem; padding: 0.5rem 0.75rem;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-    .dark #tsc-helper-view .form-group input, .dark #tsc-helper-view .form-group select {
-        background-color: #111827; /* Dark Mode background */ 
-        color: #f3f4f6; /* Dark Mode text */
-        border: 1px solid #1f2937; /* Dark Mode border */
-    }
-    #tsc-helper-view input[type="time"]::-webkit-calendar-picker-indicator { 
-        filter: none; /* No invert in Light Mode */
-    }
-    .dark #tsc-helper-view input[type="time"]::-webkit-calendar-picker-indicator { 
-        filter: invert(1); /* Invert in Dark Mode */
-    }
-    #tsc-helper-view .form-group input:focus, #tsc-helper-view .form-group select:focus {
-        outline: none; border-color: #2563eb; /* blue-600 */
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4);
-    }
-
-    /* Settings Modal Specific Fixes */
-    #tsc-helper-view #settingsModal .bg-\[\#1e293b\] { /* Targets the dark gray setting card backgrounds */
-        background-color: #f9fafb; /* Light Mode: gray-50 */
-        border: 1px solid #e5e7eb; /* Light Mode: gray-200 */
-    }
-    .dark #tsc-helper-view #settingsModal .bg-\[\#1e293b\] {
-        background-color: #1e293b; /* Dark Mode: original gray-800 */
-        border: 1px solid #475569; /* Dark Mode: original slate-600/700 */
-    }
-    #tsc-helper-view #settingsModal .text-slate-300 { color: #4b5563; /* Light Mode: gray-600 */ }
-    .dark #tsc-helper-view #settingsModal .text-slate-300 { color: #cbd5e1; /* Dark Mode: slate-300 */ }
-    #tsc-helper-view #settingsModal .text-slate-200 { color: #1f2937; /* Light Mode: dark gray */ }
-    .dark #tsc-helper-view #settingsModal .text-slate-200 { color: #e2e8f0; /* Dark Mode: slate-200 */ }
-    #tsc-helper-view #settingsModal .text-slate-400 { color: #6b7280; /* Light Mode: gray-500 */ }
-    .dark #tsc-helper-view #settingsModal .text-slate-400 { color: #94a3b8; /* Dark Mode: slate-400 */ }
-    #tsc-helper-view #settingsModal .border-slate-600 { border-color: #e5e7eb; /* Light Mode: gray-200 */ }
-    .dark #tsc-helper-view #settingsModal .border-slate-600 { border-color: #475569; /* Dark Mode: slate-600 */ }
-
-    /* Other message boxes/alerts */
-    #tsc-helper-view .message-box {
-        margin-top: 1.5rem; padding: 0.85rem; border-radius: 0.375rem;
-        font-weight: 500; visibility: hidden; opacity: 0;
-        transition: opacity 0.3s ease-in-out;
-        /* Light Mode Default */
-        background-color: #f9fafb; color: #4b5563; border: 1px solid #e5e7eb;
-    }
-    .dark #tsc-helper-view .message-box {
-        background-color: #1f2937; color: #d1d5db; border: 1px solid #374151;
-    }
-    /* Kept green/red colors for success/error messages */
-    #tsc-helper-view .message-box:not(.error) { background-color: #166534; color: #dcfce7; border: 1px solid #22c55e; }
-    #tsc-helper-view .message-box.error { background-color: #991b1b; color: #fee2e2; border: 1px solid #f87171; }
-</style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Adjusted timeline-dot ring color for better contrast */
+        .timeline-dot {
+            box-shadow: 0 0 0 4px #f9fafb; 
+        }
+        @media (prefers-color-scheme: dark) {
+            .timeline-dot { box-shadow: 0 0 0 4px #030712; }
+        }
+        .converter-input {
+            appearance: textfield; 
+        }
+        .converter-input::-webkit-outer-spin-button,
+        .converter-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* Keyframes for flash effect on empty post click */
+        @keyframes flash-red {
+            0%, 100% { border-color: rgb(229 231 235); }
+            50% { border-color: rgb(239 68 68); }
+        }
+        .flash-red {
+            animation: flash-red 0.5s ease-in-out;
+        }
+        .tag-pill.selected {
+            background-color: #2563eb; /* blue-600 */
+            color: white;
+            border-color: #2563eb;
+        }
+        .dark .tag-pill.selected {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            border-color: #3b82f6;
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background-color: #334155;
+        }
+        
+        /* Restored: Timeline Structure Enhancement */
+        #posts-feed {
+            /* Add a persistent left border to the whole feed container */
+            border-left: 1px solid #e5e7eb; /* gray-200 */
+        }
+        .dark #posts-feed {
+             border-left: 1px solid #1f2937; /* gray-800 */
+        }
+        .post-container {
+            /* Reset the left border on individual posts */
+            border-left: none !important;
+        }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 min-h-screen transition-colors">
 
@@ -426,7 +129,6 @@
             <button data-view="timeline" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400">Timeline</button>
             <button data-view="tools" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Tools</button>
             <button data-view="pcstools" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">PCS Tools</button>
-            <button data-view="tsc-helper" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">TSC Helper</button>
         </div>
 
         <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -585,134 +287,18 @@
                 </div>
             </div>
         </div>
-
-        <div id="tsc-helper-view" class="view hidden">
-            <div class="container-wrapper">
-                <div class="container">
-                    <h2 class="text-3xl font-bold mb-2">Time Segment Randomizer</h2>
-                    <p class="text-slate-300 mb-8">Generates time-logged rows based on a series of time points with randomized seconds.</p>
-                    <div id="durationWarning" class="hidden p-4 mb-4 text-sm text-yellow-200 bg-yellow-800 border border-yellow-700 rounded-lg text-left" role="alert"></div>
-                    <table class="time-table">
-                        <thead>
-                            <tr>
-                                <th>TechNumber</th><th>Username</th><th>Shift</th><th>Date</th><th>Start Time</th><th>End Time</th>
-                                <th>Hours</th><th>MainCategory</th><th>SubCategory</th><th>OT</th><th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="timeTableBody"></tbody>
-                    </table>
-                    <button id="randomizeButton" class="button button-primary">Randomize & Recalculate</button>
-                    <button id="insertTaskButton" class="button bg-green-600 hover:bg-green-700 text-white">Insert Task</button>
-                    <button id="copyButton" class="button button-secondary">Copy Table</button>
-                    <button id="settingsButton" class="button button-secondary">Settings</button>
-                    <button id="clearDataButton" class="button bg-red-700 hover:bg-red-800 text-white">Clear Data</button>
-                    <div id="messageBox" class="message-box"></div>
-                </div>
-
-                <div id="settingsModal" class="modal">
-                    <div class="modal-content" style="max-width: 896px;">
-                        <span id="closeSettingsModalButton" class="close-button">&times;</span>
-                        <h3 class="text-2xl font-semibold mb-6">Settings</h3>
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <div class="bg-[#1e293b] border border-slate-700 p-5 rounded-md">
-                                <h4 class="text-lg font-semibold text-slate-200 mb-4 pb-2 border-b border-slate-600">General Info & Schedule</h4>
-                                <div class="form-group">
-                                    <label for="selectScheduleDropdown">Select Saved Schedule</label>
-                                    <div class="flex items-center gap-2">
-                                        <select id="selectScheduleDropdown" class="flex-grow"></select>
-                                        <button id="deleteScheduleButton" class="button-remove !m-0 !py-2.5">Delete</button>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="!mb-2">Or, Generate a New Schedule</label>
-                                    <button id="generateScheduleButton" class="button !m-0 bg-indigo-600 hover:bg-indigo-700 text-sm w-full py-2 px-3">Open Schedule Generator</button>
-                                </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="form-group"><label for="techNumberInput">Tech Number</label><input type="text" id="techNumberInput"></div>
-                                    <div class="form-group"><label for="usernameInput">Username</label><input type="text" id="usernameInput"></div>
-                                    <div class="form-group"><label for="shiftInput">Shift</label><select id="shiftInput"><option value="Day">Day</option><option value="Night">Night</option></select></div>
-                                    <div class="form-group"><label for="dateInput">Start Date</label><input type="date" id="dateInput"></div>
-                                    <div class="form-group col-span-2"><label for="otInput">OT</label><select id="otInput"><option value="NO">NO</option><option value="YES">YES</option></select></div>
-                                </div>
-                            </div>
-                            <div class="bg-[#1e293b] border border-slate-700 p-5 rounded-md">
-                                <h4 class="text-lg font-semibold text-slate-200 mb-4 pb-2 border-b border-slate-600">Default Category</h4>
-                                <p class="text-slate-400 font-normal text-sm -mt-4 mb-4">Used for all non-break segments.</p>
-                                <div class="form-group mt-4"><label for="mainCatSelect">Main Category</label><select id="mainCatSelect"></select></div>
-                                <div class="form-group"><label for="subCatSelect">Sub Category</label><select id="subCatSelect"></select></div>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center mt-6 pt-4 border-t border-slate-600">
-                            <button id="resetSettingsButton" class="button bg-yellow-600 hover:bg-yellow-700 text-white">Reset All Data</button>
-                            <div>
-                                <button id="saveSettingsButton" class="button button-primary mr-2">Save & Apply</button>
-                                <button id="cancelSettingsButton" class="button button-secondary">Cancel</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="scheduleModal" class="modal">
-                    <div class="modal-content max-w-md">
-                        <h3 class="text-2xl font-semibold mb-6">Generate Time Points</h3>
-                        <div class="space-y-4">
-                            <div class="form-group !mb-6">
-                                <label for="scheduleTemplateNameInput">Schedule Name (for saving)</label>
-                                <input type="text" id="scheduleTemplateNameInput" placeholder="e.g., Weekday Shift">
-                            </div>
-                            <div class="form-group"><label for="schedTimeIn">Time IN</label><input type="time" id="schedTimeIn" class="w-full"></div>
-                            <div class="form-group"><label for="schedBreak1">1st Break Start (15 min)</label><input type="time" id="schedBreak1" class="w-full"></div>
-                            <div class="form-group"><label for="schedLunch">Lunch Start (1 hour)</label><input type="time" id="schedLunch" class="w-full"></div>
-                            <div class="form-group"><label for="schedBreak2">2nd Break Start (15 min)</label><input type="time" id="schedBreak2" class="w-full"></div>
-                            <div class="form-group"><label for="schedTimeOut">Time OUT</label><input type="time" id="schedTimeOut" class="w-full"></div>
-                        </div>
-                        <div id="scheduleErrorMessage" class="text-red-400 mt-4 text-sm h-4"></div>
-                        <div class="flex justify-between items-center mt-6 pt-4 border-t border-slate-600">
-                            <button id="saveScheduleTemplateButton" class="button button-secondary !m-0">Save Template</button>
-                            <div>
-                                <button id="applyScheduleButton" class="button button-primary mr-2">Apply</button>
-                                <button id="cancelScheduleButton" class="button button-secondary">Cancel</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="insertTaskModal" class="modal">
-                    <div class="modal-content max-w-lg">
-                        <span id="closeTaskModalButton" class="close-button">&times;</span>
-                        <h3 class="text-2xl font-semibold mb-6">Insert New Task</h3>
-                        <div class="form-group">
-                            <label for="taskSegmentSelect">Select Time Segment to Insert Task Into</label>
-                            <select id="taskSegmentSelect" class="w-full"></select>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="form-group"><label for="taskStartInput">Task Start Time (12hr)</label><input type="text" id="taskStartInput" placeholder="10:30:15 AM"></div>
-                            <div class="form-group"><label for="taskEndInput">Task End Time (12hr)</label><input type="text" id="taskEndInput" placeholder="10:45:30 AM"></div>
-                            <div class="form-group"><label for="taskMainCatSelect">Main Category</label><select id="taskMainCatSelect"></select></div>
-                            <div class="form-group"><label for="taskSubCatSelect">Sub Category</label><select id="taskSubCatSelect"></select></div>
-                            <div class="form-group col-span-2"><label for="taskOtInput">OT</label><select id="taskOtInput"><option value="NO">NO</option><option value="YES">YES</option></select></div>
-                        </div>
-                        <div id="taskErrorMessage" class="text-red-400 mt-4 text-sm h-4"></div>
-                        <div class="flex justify-end mt-6 pt-4 border-t border-slate-600">
-                            <button id="applyTaskButton" class="button button-primary mr-2">Apply Task</button>
-                            <button id="cancelTaskButton" class="button button-secondary">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <button id="scroll-to-top" class="fixed bottom-6 right-6 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-opacity duration-300 opacity-0 pointer-events-none" title="Scroll to top">
+    <button id="scroll-to-top" class="fixed bottom-4 right-4 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-opacity duration-300 opacity-0 pointer-events-none z-40">
         <i data-lucide="arrow-up" class="w-5 h-5"></i>
     </button>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <script>
-        // --- FIREBASE CONFIG ---
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js';
+        import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
+        import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
+
+        // --- CONFIGURATION START ---
         const firebaseConfig = {
             apiKey: "AIzaSyBBcrvThge1YHswamX_pb7KghiCm5ROUH8",
             authDomain: "pcs-updates.firebaseapp.com",
@@ -721,42 +307,28 @@
             messagingSenderId: "424424316130",
             appId: "1:424424316130:web:84f63aab43b4687b08d2bb"
         };
+        // --- CONFIGURATION END ---
+        
+        // --- ADMIN CONFIG (HARDCODED) ---
+        const ADMIN_USERNAME = 'admin';
+        const ADMIN_PASSWORD = 'admin'; 
 
+        // Initialize
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const COLLECTION_NAME = 'posts';
 
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp;
-        const ADMIN_USERNAME = "admin";
-        const ADMIN_PASSWORD = "admin";
-        const COLLECTION_NAME = "posts";
-
-        // --- GLOBAL STATE ---
+        // --- STATE MANAGEMENT ---
         let currentUser = null;
         let isAdmin = false;
         let posts = [];
-        let tools = [];
+        let tools = []; 
         let filteredPosts = [];
         let editingPostId = null;
-        let editingToolId = null;
+        let editingToolId = null; 
         let currentView = 'timeline';
         let selectedTag = 'General';
-
-        // --- NEW TSC HELPER STATE & CONSTANTS ---
-        const LOCAL_STORAGE_KEY = 'timeRandomizerSettings_v26_editIcon';
-        const SCHEDULE_TEMPLATES_KEY = 'timeRandomizerScheduleTemplates_v1';
-        const DURATION_LIMIT_SECONDS = 27000;
-        const categoryData = {
-            "BREAK": ["BREAK"],
-            "SARANAC": ["CF"],
-            "ACCUPLUS": ["DEM", "I3", "PCS", "REFIX", "i3QA", "RQA"],
-            "DOWNTIME": ["System", "NoProject"],
-            "TRAINING": ["Formal - Accuplus"]
-        };
-        let currentSettings = {};
-        let currentDisplayedData = [];
-        let randomizedTimes = [];
 
         // --- DOM ELEMENTS ---
         const userStatus = document.getElementById('user-status');
@@ -783,186 +355,187 @@
         const adminUser = document.getElementById('admin-user');
         const adminPass = document.getElementById('admin-pass');
         const adminStatus = document.getElementById('admin-status');
+
         const timelineView = document.getElementById('timeline-view');
         const toolsView = document.getElementById('tools-view');
-        const pcstoolsView = document.getElementById('pcstools-view');
+        const pcstoolsView = document.getElementById('pcstools-view'); 
         const navTabs = document.querySelectorAll('.tab-btn');
+        
         const errorContainer = document.getElementById('error-container');
         const errorMessage = document.getElementById('error-message');
-        const successContainer = document.getElementById('success-container');
-        const successMessage = document.getElementById('success-message');
+        const successContainer = document.getElementById('success-container'); 
+        const successMessage = document.getElementById('success-message');     
 
-        // PCS Tools Elements
+        // Tool inputs
+        const hoursInput = document.getElementById('hours-input');
+        const minutesInput = document.getElementById('minutes-input');
+        const decimalResult = document.getElementById('decimal-result');
+        const percentX = document.getElementById('percent-x');
+        const percentY = document.getElementById('percent-y');
+        const percentageResult = document.getElementById('percentage-result');
+        
+        // NEW: PCS Tools Admin Elements
+        const toolsAdminPanel = document.getElementById('tools-admin-panel');
+        const toolsListContainer = document.getElementById('tools-list-container');
+        const toolsLoadingMessage = document.getElementById('tools-loading-message');
+        const managedToolsList = document.getElementById('managed-tools-list');
         const toolTitleInput = document.getElementById('tool-title-input');
         const toolDescriptionInput = document.getElementById('tool-description-input');
         const toolLinkInput = document.getElementById('tool-link-input');
         const addToolBtn = document.getElementById('add-tool-btn');
-        const toolsAdminPanel = document.getElementById('tools-admin-panel');
-        const toolsListContainer = document.getElementById('tools-list-container');
-        const toolsLoadingMessage = document.getElementById('tools-loading-message');
 
-        // TSC Helper Elements
-        const timeTableBody = document.getElementById('timeTableBody');
-        const randomizeButton = document.getElementById('randomizeButton');
-        const insertTaskButton = document.getElementById('insertTaskButton');
-        const copyButton = document.getElementById('copyButton');
-        const settingsButton = document.getElementById('settingsButton');
-        const clearDataButton = document.getElementById('clearDataButton');
-        const messageBox = document.getElementById('messageBox');
-        const durationWarning = document.getElementById('durationWarning');
-        const settingsModal = document.getElementById('settingsModal');
-        const closeSettingsModalButton = document.getElementById('closeSettingsModalButton');
-        const saveSettingsButton = document.getElementById('saveSettingsButton');
-        const cancelSettingsButton = document.getElementById('cancelSettingsButton');
-        const resetSettingsButton = document.getElementById('resetSettingsButton');
-        const selectScheduleDropdown = document.getElementById('selectScheduleDropdown');
-        const deleteScheduleButton = document.getElementById('deleteScheduleButton');
-        const scheduleModal = document.getElementById('scheduleModal');
-        const generateScheduleButton = document.getElementById('generateScheduleButton');
-        const applyScheduleButton = document.getElementById('applyScheduleButton');
-        const cancelScheduleButton = document.getElementById('cancelScheduleButton');
-        const saveScheduleTemplateButton = document.getElementById('saveScheduleTemplateButton');
-        const scheduleErrorMessage = document.getElementById('scheduleErrorMessage');
-        const insertTaskModal = document.getElementById('insertTaskModal');
-        const closeTaskModalButton = document.getElementById('closeTaskModalButton');
-        const applyTaskButton = document.getElementById('applyTaskButton');
-        const cancelTaskButton = document.getElementById('cancelTaskButton');
-        const taskErrorMessage = document.getElementById('taskErrorMessage');
 
         // --- AUTH & INITIALIZATION ---
-        auth.signInAnonymously().catch((e) => {
-            console.error("Auth failed", e);
-            handleError("Authentication failed.");
+
+        signInAnonymously(auth).catch((e) => {
+             console.error("Auth failed", e);
+             handleError("Authentication failed.");
         });
         
-        auth.onAuthStateChanged((user) => {
+        onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
                 // Updated User UI in Header
                 userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-800";
                 userStatus.innerHTML = '<i data-lucide="user-check" class="w-5 h-5"></i>';
                 userStatus.title = `Connected as Member`;
+                
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<span>Post Update</span><i data-lucide="send" class="w-3.5 h-3.5"></i>';
+
                 initRealtimeListener();
-                initToolsListener();
+                initToolsListener(); 
             } else {
                 currentUser = null;
                 userStatus.className = "h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800 text-gray-400 animate-pulse";
                 userStatus.innerHTML = '<i data-lucide="user" class="w-5 h-5"></i>';
+                
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<span>Waiting for Auth...</span><i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i>';
             }
             lucide.createIcons();
+            updateAdminUI();
         });
 
-        // --- UTILITY FUNCTIONS ---
-        function escapeHtml(unsafe) {
-            if (!unsafe) return '';
-            return unsafe
-                 .replace(/&/g, "&amp;")
-                 .replace(/</g, "&lt;")
-                 .replace(/>/g, "&gt;")
-                 .replace(/"/g, "&quot;")
-                 .replace(/'/g, "&#039;");
-        }
-        function isValidHttpUrl(string) {
-            let url;
-            try { url = new URL(string); } catch (_) { return false; }
-            return url.protocol === "http:" || url.protocol === "https:";
-        }
-        function showMessageBox(message, isError = false) {
-            messageBox.textContent = message;
-            messageBox.classList.remove('error');
-            if (isError) {
-                messageBox.classList.add('error');
+        // --- UI/VIEW MANAGEMENT ---
+
+        function switchView(viewName) {
+            currentView = viewName;
+            [timelineView, toolsView, pcstoolsView].forEach(view => {
+                view.classList.toggle('hidden', view.id !== `${viewName}-view`);
+            });
+            navTabs.forEach(tab => {
+                const isActive = tab.dataset.view === viewName;
+                tab.classList.toggle('border-blue-600', isActive);
+                tab.classList.toggle('text-blue-600', isActive);
+                tab.classList.toggle('dark:text-blue-400', isActive);
+                tab.classList.toggle('border-transparent', !isActive);
+                tab.classList.toggle('text-gray-500', !isActive);
+            });
+            
+            if (viewName === 'pcstools') {
+                updateToolsAdminPanel(); 
             }
-            messageBox.classList.add('visible');
-            setTimeout(() => {
-                messageBox.classList.remove('visible');
-            }, 3000);
-        }
-        function handleError(message) {
-            errorMessage.textContent = message;
-            errorContainer.classList.remove('hidden');
-            setTimeout(() => {
-                errorContainer.classList.add('hidden');
-            }, 5000);
-        }
-        function handleSuccess(message) {
-            successMessage.textContent = message;
-            successContainer.classList.remove('hidden');
-            setTimeout(() => {
-                successContainer.classList.add('hidden');
-            }, 3000);
-        }
-        function updateAdminUI() {
-            if (isAdmin) {
-                adminStatus.classList.remove('hidden');
-                adminStatus.textContent = 'ADMIN MODE';
-                loginBtn.textContent = 'Logout';
-                loginBtnMobile.textContent = 'Logout';
-                composerCard.classList.remove('hidden');
-                toolsAdminPanel.classList.remove('hidden');
-            } else {
-                adminStatus.classList.add('hidden');
-                loginBtn.textContent = 'Admin Login';
-                loginBtnMobile.textContent = 'Admin';
-                if (currentView === 'timeline') {
-                    composerCard.classList.add('hidden');
-                }
-                toolsAdminPanel.classList.add('hidden');
-                editingPostId = null; // Exit any editing mode
-                editingToolId = null;
-                applySearchFilter(); // Re-render posts to remove edit buttons
-                renderManagedTools(); // Remove managed tools list
-            }
+            
             lucide.createIcons();
         }
 
-        // --- ADMIN LOGIN ---
-        function handleLogin() {
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', () => switchView(tab.dataset.view));
+        });
+
+        // --- TAG SELECTION LOGIC ---
+        
+        updateTagSelection(selectedTag);
+
+        tagPills.forEach(btn => {
+            btn.addEventListener('click', () => {
+                selectedTag = btn.dataset.tag;
+                updateTagSelection(selectedTag);
+            });
+        });
+
+        function updateTagSelection(tag) {
+            tagPills.forEach(btn => {
+                if (btn.dataset.tag === tag) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+        }
+
+        // --- ADMIN LOGIN LOGIC ---
+
+        function updateAdminUI() {
             if (isAdmin) {
-                handleLogout();
-                return;
+                adminStatus.textContent = 'ADMIN';
+                adminStatus.classList.remove('hidden');
+                loginBtn.textContent = 'Logout';
+                loginBtnMobile.textContent = 'Logout';
+                
+                const logoutHandler = () => handleLogout();
+                loginBtn.onclick = logoutHandler;
+                loginBtnMobile.onclick = logoutHandler;
+            } else {
+                adminStatus.textContent = '';
+                adminStatus.classList.add('hidden');
+                loginBtn.textContent = 'Admin Login';
+                loginBtnMobile.textContent = 'Admin';
+                
+                const loginHandler = () => loginModal.classList.remove('hidden');
+                loginBtn.onclick = loginHandler;
+                loginBtnMobile.onclick = loginHandler;
             }
-            const user = adminUser.value;
-            const pass = adminPass.value;
             
-            if (user === ADMIN_USERNAME && pass === ADMIN_PASSWORD) {
+            if (currentView === 'pcstools') {
+                updateToolsAdminPanel();
+            }
+            applySearchFilter();
+        }
+        
+        function updateToolsAdminPanel() {
+            if (currentView === 'pcstools') {
+                toolsAdminPanel.classList.toggle('hidden', !isAdmin);
+                renderManagedTools();
+            }
+        }
+        
+        function handleLogin() {
+            if (adminUser.value === ADMIN_USERNAME && adminPass.value === ADMIN_PASSWORD) {
                 isAdmin = true;
                 loginModal.classList.add('hidden');
                 updateAdminUI();
-                handleSuccess("Admin logged in successfully!");
+                handleSuccess("Admin login successful."); 
             } else {
                 handleError("Invalid credentials.");
-                adminPass.value = ''; // Clear password on failure
             }
         }
+
         function handleLogout() {
             isAdmin = false;
             adminUser.value = ADMIN_USERNAME;
             adminPass.value = ADMIN_PASSWORD;
             updateAdminUI();
-            handleSuccess("Logged out of Admin account.");
+            handleSuccess("Logged out of Admin account."); 
         }
+
         submitLoginBtn.addEventListener('click', handleLogin);
         closeModalBtn.addEventListener('click', () => {
-            adminUser.value = ADMIN_USERNAME; // Reset to default
-            adminPass.value = ADMIN_PASSWORD; // Reset to default
-            loginModal.classList.add('hidden');
+             adminUser.value = ADMIN_USERNAME; // Reset to default
+             adminPass.value = ADMIN_PASSWORD; // Reset to default
+             loginModal.classList.add('hidden');
         });
-        loginBtn.addEventListener('click', () => isAdmin ? handleLogout() : loginModal.classList.remove('hidden'));
-        loginBtnMobile.addEventListener('click', () => isAdmin ? handleLogout() : loginModal.classList.remove('hidden'));
-
 
         // --- FIRESTORE DATA ---
+
         function initRealtimeListener() {
             if (!currentUser) return;
-            db.collection(COLLECTION_NAME).onSnapshot((snapshot) => {
+            
+            onSnapshot(collection(db, COLLECTION_NAME), (snapshot) => {
                 posts = snapshot.docs.map(doc => ({ 
                     id: doc.id, 
-                    ...doc.data(), 
+                    ...doc.data(),
                     reactions: doc.data().reactions || {} 
                 }));
                 posts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
@@ -972,14 +545,19 @@
                 if(error.code === 'permission-denied') handleError("Permission denied loading posts.");
             });
         }
+        
         function initToolsListener() {
-            db.collection('tools').onSnapshot((snapshot) => {
-                tools = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            onSnapshot(collection(db, 'tools'), (snapshot) => {
+                tools = snapshot.docs.map(doc => ({ 
+                    id: doc.id, 
+                    ...doc.data()
+                }));
                 tools.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
                 renderTools();
                 if (isAdmin) renderManagedTools();
             }, (error) => {
                 console.error("Tools listener failed", error);
+                // Inform user about security rules if permission is denied
                 if(error.code === 'permission-denied') handleError("Tools listener failed: Missing or insufficient permissions. Check Firestore Security Rules for the 'tools' collection.");
                 else handleError("Failed to load tools.");
             });
@@ -987,158 +565,124 @@
 
         // --- SEARCH FUNCTIONALITY ---
         searchInput.addEventListener('input', applySearchFilter);
+
         function applySearchFilter() {
             const query = searchInput.value.toLowerCase().trim();
+            
             if (query === '') {
                 filteredPosts = posts;
             } else {
                 filteredPosts = posts.filter(post => 
-                    (post.title && post.title.toLowerCase().includes(query)) || 
+                    (post.title && post.title.toLowerCase().includes(query)) ||
                     post.content.toLowerCase().includes(query) || 
                     (post.tag && post.tag.toLowerCase().includes(query))
                 );
             }
-            renderPosts();
+            renderPosts(filteredPosts);
         }
 
-        // --- POST RENDERING ---
-        function formatRelativeTime(ts) {
-            if (!ts || !ts.seconds) return 'Just now';
-            const seconds = Math.floor((new Date() - (ts.seconds * 1000)) / 1000);
-            if (seconds < 60) return `${seconds}s ago`;
-            const minutes = Math.floor(seconds / 60);
-            if (minutes < 60) return `${minutes}m ago`;
-            const hours = Math.floor(minutes / 60);
-            if (hours < 24) return `${hours}h ago`;
-            const days = Math.floor(hours / 24);
-            if (days < 7) return `${days}d ago`;
-            const date = new Date(ts.seconds * 1000);
-            return date.toLocaleDateString();
+        // --- POST RENDERING & CRUD ---
+
+        function isImageUrl(url) {
+            return (url || '').match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) !== null;
         }
 
-        function renderMedia(url) {
-            if (!url || !isValidHttpUrl(url)) return '';
-            const safeUrl = escapeHtml(url);
-            const isImage = /\.(jpeg|jpg|png|gif|webp)$/i.test(url.split('?')[0]);
-            
-            if (isImage) {
-                return `
-                <div class="mt-3 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800">
-                    <img src="${safeUrl}" alt="Post Media" class="w-full h-auto object-cover max-h-80" onerror="this.onerror=null; this.src='https://placehold.co/400x200/94a3b8/ffffff?text=Image+Load+Failed';">
-                </div>
-                `;
-            } else {
-                return `
-                <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 p-3 mt-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full max-w-sm group">
-                    <div class="h-8 w-8 flex items-center justify-center rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-110 transition-transform">
-                        <i data-lucide="external-link" class="w-4 h-4" aria-label="External Link"></i>
-                    </div>
-                    <div class="overflow-hidden">
-                        <p class="text-xs font-medium text-blue-600 dark:text-blue-400 truncate">${safeUrl}</p>
-                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">External Link</p>
-                    </div>
-                </a>
-                `;
-            }
-        }
-
-        function renderPosts() {
-            if (filteredPosts.length === 0) {
+        function renderPosts(currentPosts) {
+            // ... (rest of renderPosts logic remains the same)
+            if (currentPosts.length === 0) {
+                const message = searchInput.value.trim() ? "No results found." : "No updates yet.";
                 feedContainer.innerHTML = `
-                <div class="text-center py-20 text-gray-400 bg-white dark:bg-gray-900 rounded-xl border border-dashed border-gray-200 dark:border-gray-800">
-                    <i data-lucide="info" class="w-6 h-6 mx-auto mb-2 opacity-50"></i>
-                    <span class="text-sm">No updates found.</span>
-                </div>
-                `;
+                    <div class="text-center py-20 text-gray-400 bg-white dark:bg-gray-900 rounded-xl border border-dashed border-gray-200 dark:border-gray-800">
+                        <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-4 opacity-50"></i>
+                        <p>${message}</p>
+                    </div>`;
                 lucide.createIcons();
                 return;
             }
+            
+            const currentUserId = currentUser ? currentUser.uid : 'temp-anon-user';
 
-            feedContainer.innerHTML = filteredPosts.map((post, index) => {
+            feedContainer.innerHTML = currentPosts.map(post => {
                 const isCurrentEditing = editingPostId === post.id;
-                const reactionCount = Object.keys(post.reactions).length;
-                const hasReacted = currentUser && post.reactions[currentUser.uid];
-                const isAuthorOrAdmin = isAdmin || (currentUser && post.authorId === currentUser.uid);
+                const postReactions = post.reactions;
+                const reactionCount = Object.keys(postReactions).length;
+                const hasReacted = currentUserId !== 'temp-anon-user' && postReactions[currentUserId];
+                
+                const isAuthor = post.authorId === currentUserId;
 
-                const reactionIconClass = hasReacted 
-                    ? 'fill-red-500 text-red-500 dark:fill-red-400 dark:text-red-400' 
-                    : 'text-gray-400 hover:text-red-500 transition-colors';
-                const tagColorClass = post.tag === 'Feature' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-400'
-                    : post.tag === 'Bug' ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-400'
-                    : post.tag === 'Announcement' ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-400'
-                    : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300';
-                const timeLineDotClass = index === 0 
-                    ? 'timeline-dot w-3.5 h-3.5 bg-blue-600 dark:bg-blue-400'
-                    : 'timeline-dot w-3.5 h-3.5 bg-gray-400 dark:bg-gray-600';
+                let tagColorClass = "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
+                if (post.tag === 'Feature') tagColorClass = "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+                if (post.tag === 'Bug') tagColorClass = "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+                if (post.tag === 'Announcement') tagColorClass = "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
 
-                const postContentHtml = isCurrentEditing 
+                const postContentHtml = isCurrentEditing
                     ? `
                         <input type="text" id="edit-title-${post.id}" class="w-full p-2 mb-2 font-bold text-lg border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="${escapeHtml(post.title || '')}" placeholder="Title">
                         <textarea id="edit-content-${post.id}" class="w-full h-32 p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">${escapeHtml(post.content || '')}</textarea>
-                        <select id="edit-tag-${post.id}" class="w-full p-2 mt-2 mb-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                        <select id="edit-tag-${post.id}" class="w-full p-2 mt-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
                             <option value="General" ${post.tag === 'General' ? 'selected' : ''}>General</option>
                             <option value="Feature" ${post.tag === 'Feature' ? 'selected' : ''}>Feature</option>
                             <option value="Bug" ${post.tag === 'Bug' ? 'selected' : ''}>Bug</option>
                             <option value="Announcement" ${post.tag === 'Announcement' ? 'selected' : ''}>Announcement</option>
                         </select>
                         <input type="url" id="edit-link-${post.id}" class="w-full p-2 mt-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" value="${escapeHtml(post.link || '')}" placeholder="Link/Image URL">
-                    ` 
+                      `
                     : `
                         ${post.title ? `<h3 class="text-base font-bold text-gray-900 dark:text-white mb-2">${escapeHtml(post.title)}</h3>` : ''}
                         <p class="whitespace-pre-wrap text-sm leading-relaxed text-gray-700 dark:text-gray-300">${escapeHtml(post.content)}</p>
                         ${post.link ? renderMedia(post.link) : ''}
-                    `;
-                
-                const buttonsHtml = isCurrentEditing 
-                    ? `
-                        <button onclick="toggleEdit('${post.id}', true)" class="text-sm font-medium text-green-600 dark:text-green-400 hover:text-green-700 transition-colors flex items-center gap-1">
-                            <i data-lucide="save" class="w-4 h-4"></i> Save
-                        </button>
-                        <button onclick="editingPostId = null; applySearchFilter();" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-700 transition-colors flex items-center gap-1">
-                            <i data-lucide="x" class="w-4 h-4"></i> Cancel
-                        </button>
-                    `
-                    : isAuthorOrAdmin ? `
-                        <button onclick="toggleEdit('${post.id}', false)" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors flex items-center gap-1">
-                            <i data-lucide="pencil" class="w-4 h-4"></i> Edit
-                        </button>
-                        <button onclick="deletePost('${post.id}')" class="text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 transition-colors flex items-center gap-1">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
-                        </button>
-                    ` : '';
+                      `;
 
+                const postControls = (isAdmin || isAuthor) ? `
+                    <div class="flex gap-2">
+                        <button data-action="${isCurrentEditing ? 'save-edit' : 'edit-post'}" 
+                            data-post-id="${post.id}"
+                            class="p-1 text-xs font-medium rounded-md ${isCurrentEditing ? 'bg-green-600 text-white hover:bg-green-700' : 'text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'}">
+                            <i data-lucide="${isCurrentEditing ? 'save' : 'edit'}" class="w-3 h-3 mr-1 inline"></i>
+                            ${isCurrentEditing ? 'Save' : 'Edit'}
+                        </button>
+                        ${!isCurrentEditing ? `
+                            <button data-action="delete-post" data-post-id="${post.id}" class="p-1 text-xs font-medium rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
+                                <i data-lucide="trash-2" class="w-3 h-3 mr-1 inline"></i>
+                                Delete
+                            </button>
+                        ` : ''}
+                    </div>
+                ` : '';
+
+                const reactionButton = `
+                    <button data-action="toggle-reaction" 
+                            data-post-id="${post.id}" 
+                            data-reacted="${hasReacted}"
+                            class="flex items-center gap-1.5 p-1 px-2 text-xs rounded-full transition-colors ${hasReacted ? 'bg-red-500 text-white hover:bg-red-600' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}">
+                        <i data-lucide="heart" class="w-3.5 h-3.5 fill-current ${hasReacted ? '' : 'fill-none'}"></i>
+                        <span class="font-medium">${reactionCount}</span>
+                    </button>
+                `;
 
                 return `
-                    <div class="post-container relative flex items-start group">
-                        <div class="flex flex-col items-center mr-4 pt-0.5">
-                            <div class="${timeLineDotClass} rounded-full z-10"></div>
-                            <div class="h-full w-0.5 bg-gray-200 dark:bg-gray-800 absolute top-0"></div>
-                        </div>
-                        <div class="flex-1 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 p-5 -mt-2.5">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="flex items-center gap-3">
-                                    <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${tagColorClass}">
-                                        ${escapeHtml(post.tag)}
+                    <div class="group relative pl-6 pb-8 last:pb-0">
+                        <div class="timeline-dot absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full bg-blue-500 ring-4 ring-gray-50 dark:ring-gray-950"></div>
+                        
+                        <div class="flex flex-col gap-1.5">
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-medium text-gray-900 dark:text-gray-200 text-xs">
+                                        ${post.authorId === 'admin' ? 'Admin Post' : 'Member'}
+                                        ${isAdmin ? `<span class="text-gray-400 font-mono text-[10px] ml-1 select-all" title="Author ID">${escapeHtml(post.authorId)}</span>` : ''}
                                     </span>
-                                    <span class="text-xs text-gray-500 dark:text-gray-400">
-                                        ${formatRelativeTime(post.createdAt)}
+                                    <span class="text-xs text-gray-400">
+                                        &bull; ${formatRelativeTime(post.createdAt)}
                                     </span>
+                                    ${post.tag ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase ${tagColorClass}">${escapeHtml(post.tag)}</span>` : ''}
                                 </div>
-                                <div class="flex items-center gap-3">
-                                    ${buttonsHtml}
-                                </div>
+                                ${postControls}
                             </div>
-                            
-                            ${postContentHtml}
 
-                            <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-                                <button onclick="toggleReaction('${post.id}')" class="flex items-center gap-1 text-sm font-medium ${reactionIconClass}">
-                                    <i data-lucide="heart" class="w-4 h-4 ${hasReacted ? 'fill-red-500 dark:fill-red-400' : ''}"></i>
-                                    <span>${reactionCount} Reaction${reactionCount === 1 ? '' : 's'}</span>
-                                </button>
-                                <span class="text-xs text-gray-400">
-                                    Author: ${post.authorId ? post.authorId.substring(0, 8) + '...' : 'Unknown'}
-                                </span>
+                            ${postContentHtml}
+                            
+                            <div class="flex justify-end pt-1">
+                                ${reactionButton}
                             </div>
                         </div>
                     </div>
@@ -1147,169 +691,53 @@
             
             lucide.createIcons();
         }
-
-        // --- POST CRUD ---
-        submitBtn.addEventListener('click', async () => {
-            const title = titleInput.value.trim();
-            const content = contentInput.value.trim();
-            const link = linkInput.value.trim();
-            const selectedTagElement = tagSelector.querySelector('.tag-pill.selected');
-            const tag = selectedTagElement ? selectedTagElement.dataset.tag : 'General';
-
-            if (content === '' && link === '') {
-                composerCard.classList.add('flash-red');
-                setTimeout(() => composerCard.classList.remove('flash-red'), 500);
-                return handleError("Update content or link is required.");
-            }
-            if (!currentUser || !currentUser.uid) {
-                return handleError("User not authenticated.");
-            }
-
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span>Posting...</span><i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i>';
-
-            try {
-                const postData = {
-                    title: title,
-                    content: content,
-                    link: link,
-                    tag: tag,
-                    authorId: currentUser.uid,
-                    createdAt: serverTimestamp(),
-                    reactions: {} // Initialize with empty reactions map
-                };
-
-                await db.collection(COLLECTION_NAME).add(postData);
-
-                // Clear inputs
-                titleInput.value = '';
-                contentInput.value = '';
-                linkInput.value = '';
-                tagPills.forEach(p => p.classList.remove('selected'));
-                tagSelector.querySelector('[data-tag="General"]').classList.add('selected');
-
-                handleSuccess("Update posted successfully!");
-
-            } catch (err) {
-                console.error(err);
-                if(err.code === 'permission-denied') handleError("Post blocked. Missing or insufficient permissions. Check your Firestore Security Rules.");
-                else handleError("Failed to post update.");
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<span>Post Update</span><i data-lucide="send" class="w-3.5 h-3.5"></i>';
-                lucide.createIcons();
-            }
-        });
-
-        const toggleReaction = async (id) => {
-            if (!currentUser || !currentUser.uid) return handleError("Please log in to react.");
-            const docRef = db.collection(COLLECTION_NAME).doc(id);
-            const post = posts.find(p => p.id === id);
-            if (!post) return;
-            
-            const userId = currentUser.uid;
-            let newReactions = { ...post.reactions };
-
-            try {
-                if (newReactions[userId]) {
-                    delete newReactions[userId];
-                } else {
-                    newReactions[userId] = true;
-                }
-                await docRef.update({ reactions: newReactions });
-            } catch (e) {
-                handleError("Failed to update reaction.");
-            }
-        };
-
-        const toggleEdit = async (id, currentlyEditing) => {
-            if (!id) return;
-            if (!isAdmin && posts.find(p => p.id === id).authorId !== currentUser.uid) {
-                 return handleError("You can only edit your own posts.");
-            }
-
-            if (currentlyEditing) {
-                const newTitle = document.getElementById(`edit-title-${id}`).value.trim();
-                const newContent = document.getElementById(`edit-content-${id}`).value.trim();
-                const newLink = document.getElementById(`edit-link-${id}`).value.trim();
-                const newTag = document.getElementById(`edit-tag-${id}`).value;
-                const originalPost = posts.find(p => p.id === id);
-                
-                if (newContent === '' && newLink === '') {
-                    return handleError("Content or link is required to save.");
-                }
-
-                try {
-                    await db.collection(COLLECTION_NAME).doc(id).set({
-                        title: newTitle,
-                        content: newContent,
-                        link: newLink,
-                        tag: newTag,
-                        authorId: originalPost.authorId,
-                        createdAt: originalPost.createdAt,
-                        reactions: originalPost.reactions
-                    });
-                    editingPostId = null;
-                    applySearchFilter();
-                    handleSuccess("Post saved successfully!");
-                } catch (e) {
-                    handleError("Failed to save.");
-                }
-            } else {
-                editingPostId = id;
-                applySearchFilter();
-                lucide.createIcons();
-            }
-        };
-
-        const deletePost = async (id) => {
-            if (!id) return;
-            if (!isAdmin && posts.find(p => p.id === id).authorId !== currentUser.uid) {
-                 return handleError("You can only delete your own posts.");
-            }
-            if (!confirm("Are you sure you want to delete this post?")) return;
-            try {
-                await db.collection(COLLECTION_NAME).doc(id).delete();
-                handleSuccess("Post deleted.");
-            } catch(e) {
-                handleError("Delete failed. Check security rules.");
-            }
-        };
         
-        // Tag selection logic
-        tagSelector.addEventListener('click', (e) => {
-            const target = e.target.closest('.tag-pill');
-            if (target) {
-                tagPills.forEach(p => p.classList.remove('selected'));
-                target.classList.add('selected');
-                selectedTag = target.dataset.tag;
+        function renderMedia(url) {
+            const safeUrl = escapeHtml(url);
+            if (isImageUrl(url)) {
+                return `
+                    <div class="mt-3 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 max-w-md">
+                        <img src="${safeUrl}" alt="Post image" class="w-full h-auto object-cover max-h-80" 
+                             onerror="this.onerror=null; this.src='https://placehold.co/400x200/94a3b8/ffffff?text=Image+Load+Failed';">
+                    </div>
+                `;
+            } else {
+                return `
+                    <a href="${safeUrl}" target="_blank" rel="noopener noreferrer"
+                       class="flex items-center gap-3 p-3 mt-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full max-w-sm group">
+                        <div class="h-8 w-8 flex items-center justify-center rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-110 transition-transform">
+                            <i data-lucide="external-link" class="w-4 h-4" aria-label="External Link"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <p class="text-xs font-medium text-blue-600 dark:text-blue-400 truncate">${safeUrl}</p>
+                            <p class="text-[10px] text-gray-500 uppercase tracking-wide">External Link</p>
+                        </div>
+                    </a>
+                `;
             }
-        });
-        tagSelector.querySelector('[data-tag="General"]').classList.add('selected'); // Default selection
-
-        // Clear link logic
-        clearLinkBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            linkInput.value = '';
-        });
-
-        // --- TOOLS RENDERING ---
+        }
+        
+        // NEW: Tool Rendering functions
         function renderTools() {
             toolsLoadingMessage.classList.add('hidden');
+            
             if (tools.length === 0) {
                 toolsListContainer.innerHTML = `
-                <p class="col-span-full text-center text-gray-400 py-10">No downloadable tools have been added yet.</p>
+                    <p class="col-span-full text-center text-gray-400 py-10">No downloadable tools have been added yet.</p>
                 `;
                 return;
             }
+
             toolsListContainer.innerHTML = tools.map(tool => `
-                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-5 flex flex-col justify-between">
+                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-5 flex flex-col justify-between h-full">
                     <div>
-                        <h3 class="text-lg font-bold mb-2">${escapeHtml(tool.title)}</h3>
+                        <h4 class="text-base font-semibold text-gray-900 dark:text-white mb-2">${escapeHtml(tool.title)}</h4>
                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">${escapeHtml(tool.description)}</p>
                     </div>
-                    <a href="${escapeHtml(tool.link)}" target="_blank" rel="noopener noreferrer" class="self-start px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-colors flex items-center gap-2">
-                        <i data-lucide="download" class="w-4 h-4"></i> Download
+                    <a href="${escapeHtml(tool.link)}" target="_blank" rel="noopener noreferrer" 
+                       class="mt-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        Download
                     </a>
                 </div>
             `).join('');
@@ -1317,71 +745,104 @@
         }
 
         function renderManagedTools() {
-            const listContainer = document.getElementById('managed-tools-list');
-            listContainer.innerHTML = tools.length === 0 
-                ? '<p class="text-sm text-gray-400">No tools added yet.</p>'
-                : tools.map(tool => `
-                    <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            if (!isAdmin) {
+                managedToolsList.innerHTML = '';
+                return;
+            }
+            
+            // Render the list of tools for editing/deleting
+            managedToolsList.innerHTML = `
+                <h4 class="text-sm font-semibold mb-2">Available Tools (${tools.length})</h4>
+                ${tools.map(tool => `
+                    <div id="managed-tool-${tool.id}" class="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg flex items-center justify-between">
                         <span class="text-sm font-medium truncate">${escapeHtml(tool.title)}</span>
-                        <div class="flex gap-2">
-                            <button data-action="edit-tool" data-tool-id="${tool.id}" class="text-blue-500 hover:text-blue-600">
-                                <i data-lucide="pencil" class="w-4 h-4 pointer-events-none"></i>
+                        <div class="flex gap-2 shrink-0">
+                            <button data-action="edit-tool" data-tool-id="${tool.id}" class="text-blue-500 hover:text-blue-700 p-1 rounded transition-colors" title="Edit">
+                                <i data-lucide="edit" class="w-4 h-4"></i>
                             </button>
-                            <button data-action="delete-tool" data-tool-id="${tool.id}" class="text-red-500 hover:text-red-600">
-                                <i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i>
+                            <button data-action="delete-tool" data-tool-id="${tool.id}" class="text-red-500 hover:text-red-700 p-1 rounded transition-colors" title="Delete">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </div>
                     </div>
-                `).join('');
+                `).join('')}
+            `;
             lucide.createIcons();
         }
 
-        function startToolEdit(toolId) {
-            const tool = tools.find(t => t.id === toolId);
-            if (!tool) return;
-            editingToolId = toolId;
-            toolTitleInput.value = tool.title;
-            toolDescriptionInput.value = tool.description;
-            toolLinkInput.value = tool.link;
-            addToolBtn.textContent = 'Save Changes';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
 
-        async function deleteTool(toolId) {
-            if (!isAdmin) return handleError("Only Admin can manage tools.");
-            if (!confirm("Are you sure you want to delete this tool?")) return;
-            try {
-                await db.collection('tools').doc(toolId).delete();
-                handleSuccess("Tool deleted.");
-            } catch(e) {
-                handleError("Delete failed. Check security rules.");
-            }
-        }
+        // --- EVENTS ---
         
+        feedContainer.addEventListener('click', (e) => {
+            const target = e.target.closest('[data-action]');
+            if (!target) return;
+
+            const action = target.dataset.action;
+            const postId = target.dataset.postId;
+            const hasReacted = target.dataset.reacted === 'true';
+            const currentUserId = currentUser ? currentUser.uid : null;
+
+            if (!currentUserId) {
+                 handleError("Authentication required.");
+                 return;
+            }
+            
+            const post = posts.find(p => p.id === postId);
+            const isAuthor = post && post.authorId === currentUserId;
+            const canEditOrDelete = isAdmin || isAuthor;
+
+            switch(action) {
+                case 'toggle-reaction':
+                    toggleReaction(postId, currentUserId, hasReacted);
+                    break;
+                case 'edit-post':
+                    if (canEditOrDelete) toggleEdit(postId, false);
+                    else handleError("Admin or Post Author privileges required.");
+                    break;
+                case 'save-edit':
+                    if (canEditOrDelete) toggleEdit(postId, true);
+                    else handleError("Admin or Post Author privileges required to save.");
+                    break;
+                case 'delete-post':
+                    if (canEditOrDelete) deletePost(postId);
+                    else handleError("Admin or Post Author privileges required to delete.");
+                    break;
+            }
+        });
+        
+        // NEW: Tool Admin Button Logic (Add/Save Tool)
         addToolBtn.addEventListener('click', async () => {
             const title = toolTitleInput.value.trim();
             const description = toolDescriptionInput.value.trim();
             const link = toolLinkInput.value.trim();
+            
             if (!isAdmin) return handleError("Only Admin can manage tools.");
+
             if (!title || !description || !link) {
                 return handleError("All fields are required to add/save a tool.");
             }
+
             addToolBtn.disabled = true;
             addToolBtn.textContent = editingToolId ? 'Saving...' : 'Adding...';
+
             try {
-                const toolData = { 
-                    title, 
-                    description, 
-                    link, 
-                    createdAt: serverTimestamp() 
+                const toolData = {
+                    title,
+                    description,
+                    link,
+                    createdAt: serverTimestamp()
                 };
-                if (editingToolId) { 
-                    await db.collection('tools').doc(editingToolId).set(toolData, { merge: true });
+
+                if (editingToolId) {
+                    // Update existing tool
+                    await setDoc(doc(db, 'tools', editingToolId), toolData);
                     handleSuccess("Tool updated successfully!");
-                } else { 
-                    await db.collection('tools').add(toolData);
+                } else {
+                    // Add new tool
+                    await addDoc(collection(db, 'tools'), toolData);
                     handleSuccess("New tool added successfully!");
                 }
+                
                 // Reset form
                 toolTitleInput.value = '';
                 toolDescriptionInput.value = '';
@@ -1401,816 +862,182 @@
             }
         });
 
-        pcstoolsView.addEventListener('click', (e) => {
-            const target = e.target.closest('[data-action]');
-            if (!target) return;
-            const action = target.dataset.action;
-            const toolId = target.dataset.toolId;
-            switch(action) {
-                case 'edit-tool': startToolEdit(toolId); break;
-                case 'delete-tool': deleteTool(toolId); break;
+        // The rest of the event listeners remain the same for post CRUD and tool list actions
+        // ... (existing post CRUD functions and tool management event delegation)
+
+        submitBtn.addEventListener('click', async () => {
+            const title = titleInput.value.trim();
+            const content = contentInput.value.trim();
+            const link = linkInput.value.trim();
+            const tag = selectedTag;
+
+            if (!currentUser) return handleError("Not authenticated.");
+
+            if (!content && !link && !title) {
+                composerCard.classList.add('flash-red');
+                setTimeout(() => composerCard.classList.remove('flash-red'), 500);
+                return handleError("Please enter a title, content, or link.");
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Posting...';
+
+            try {
+                await addDoc(collection(db, COLLECTION_NAME), {
+                    title,
+                    content,
+                    link,
+                    tag,
+                    authorId: isAdmin ? 'admin' : currentUser.uid, 
+                    createdAt: serverTimestamp(),
+                    reactions: {}
+                });
+                titleInput.value = '';
+                contentInput.value = '';
+                linkInput.value = '';
+                selectedTag = 'General';
+                updateTagSelection('General');
+                handleSuccess("Update posted successfully!"); 
+            } catch (err) {
+                handleError("Failed to post. Check your Firestore Security Rules.");
+                console.error(err);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Post Update</span><i data-lucide="send" class="w-3.5 h-3.5"></i>';
+                lucide.createIcons();
             }
         });
 
-        // --- NAVIGATION ---
-        navTabs.forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                const newView = e.currentTarget.dataset.view;
-                
-                // Hide all views
-                document.querySelectorAll('.view').forEach(view => view.classList.add('hidden'));
-                
-                // Show the selected view
-                document.getElementById(`${newView}-view`).classList.remove('hidden');
-                
-                // Update active tab styling
-                navTabs.forEach(t => {
-                    t.classList.remove('border-blue-600', 'text-blue-600', 'dark:border-blue-400', 'dark:text-blue-400');
-                    t.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'dark:hover:text-gray-300');
-                });
-                e.currentTarget.classList.add('border-blue-600', 'text-blue-600', 'dark:border-blue-400', 'dark:text-blue-400');
-                e.currentTarget.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'dark:hover:text-gray-300');
-                
-                currentView = newView;
-                if (currentView === 'timeline' && !isAdmin) {
-                    composerCard.classList.add('hidden');
-                } else {
-                    composerCard.classList.remove('hidden');
-                }
-                lucide.createIcons();
-            });
+        const toggleReaction = async (postId, userId, hasReacted) => {
+            const docRef = doc(db, COLLECTION_NAME, postId);
+            try {
+                const post = posts.find(p => p.id === postId);
+                if (!post) return;
+                let newReactions = { ...post.reactions };
+                if (hasReacted) delete newReactions[userId];
+                else newReactions[userId] = true;
+                await updateDoc(docRef, { reactions: newReactions });
+            } catch (e) { handleError("Failed to update reaction."); }
+        };
+
+        const toggleEdit = async (id, currentlyEditing) => {
+            if (!id) return; 
+
+            if (currentlyEditing) {
+                const newTitle = document.getElementById(`edit-title-${id}`).value.trim();
+                const newContent = document.getElementById(`edit-content-${id}`).value.trim();
+                const newLink = document.getElementById(`edit-link-${id}`).value.trim();
+                const newTag = document.getElementById(`edit-tag-${id}`).value;
+                const originalPost = posts.find(p => p.id === id);
+
+                try {
+                    await setDoc(doc(db, COLLECTION_NAME, id), { 
+                        title: newTitle,
+                        content: newContent, 
+                        link: newLink,
+                        tag: newTag,
+                        authorId: originalPost.authorId,
+                        createdAt: originalPost.createdAt,
+                        reactions: originalPost.reactions
+                    });
+                    editingPostId = null;
+                    applySearchFilter();
+                    handleSuccess("Post saved successfully!"); 
+                } catch (e) { handleError("Failed to save."); }
+            } else {
+                editingPostId = id;
+                applySearchFilter();
+            }
+        };
+
+        const deletePost = async (id) => {
+            if (!id) return;
+            if (!confirm("Are you sure you want to delete this post?")) return;
+            try { 
+                await deleteDoc(doc(db, COLLECTION_NAME, id));
+                handleSuccess("Post deleted."); 
+            } 
+            catch(e) { handleError("Delete failed. Check security rules."); }
+        };
+        
+        pcstoolsView.addEventListener('click', (e) => {
+            const target = e.target.closest('[data-action]');
+            if (!target || !isAdmin) return;
+            
+            const action = target.dataset.action;
+            const toolId = target.dataset.toolId;
+            
+            switch(action) {
+                case 'edit-tool':
+                    startToolEdit(toolId);
+                    break;
+                case 'delete-tool':
+                    deleteTool(toolId);
+                    break;
+            }
         });
 
-        // Set initial view
-        document.querySelector('.tab-btn[data-view="timeline"]').click();
+        function startToolEdit(toolId) {
+            const tool = tools.find(t => t.id === toolId);
+            if (!tool) return;
+            
+            editingToolId = toolId;
+            toolTitleInput.value = tool.title;
+            toolDescriptionInput.value = tool.description;
+            toolLinkInput.value = tool.link;
+            addToolBtn.textContent = 'Save Changes';
+            handleSuccess(`Editing: ${tool.title}`);
+        }
+
+        async function deleteTool(toolId) {
+            if (!confirm("Are you sure you want to delete this tool?")) return;
+            try {
+                await deleteDoc(doc(db, 'tools', toolId));
+                handleSuccess("Tool deleted successfully.");
+            } catch (e) {
+                handleError("Failed to delete tool. Check security rules.");
+                console.error(e);
+            }
+        }
 
 
-        // --- DECIMAL TIME CONVERTER ---
-        const hoursInput = document.getElementById('hours-input');
-        const minutesInput = document.getElementById('minutes-input');
-        const decimalResult = document.getElementById('decimal-result');
-
+        // --- UTILS ---
+        
         function calculateDecimalTime() {
             const hours = parseInt(hoursInput.value) || 0;
             const minutes = parseInt(minutesInput.value) || 0;
-            const decimal = hours + (minutes / 60);
-            decimalResult.textContent = decimal.toFixed(2);
+            if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return;
+            decimalResult.textContent = (hours + (minutes / 60)).toFixed(2);
         }
-
         hoursInput.addEventListener('input', calculateDecimalTime);
         minutesInput.addEventListener('input', calculateDecimalTime);
-
-        // --- PERCENTAGE CALCULATOR ---
-        const percentX = document.getElementById('percent-x');
-        const percentY = document.getElementById('percent-y');
-        const percentageResult = document.getElementById('percentage-result');
 
         function calculatePercentage() {
             const x = parseFloat(percentX.value) || 0;
             const y = parseFloat(percentY.value) || 0;
-            const result = (x / 100) * y;
-            percentageResult.textContent = result.toFixed(2);
+            percentageResult.textContent = ((x / 100) * y).toFixed(2).replace(/\.00$/, '');
         }
-
         percentX.addEventListener('input', calculatePercentage);
         percentY.addEventListener('input', calculatePercentage);
 
+        clearLinkBtn.addEventListener('click', () => linkInput.value = '');
 
-        // --- TSC HELPER FUNCTIONS ---
-
-        // Time Utility Functions
-        function formatTimeComponent(t) { return t.toString().padStart(2, '0'); }
-        function convert12hrTo24hr(h, p) {
-            let hour = parseInt(h);
-            if (p === 'AM' && hour === 12) hour = 0;
-            if (p === 'PM' && hour < 12) hour += 12;
-            return hour;
-        }
-        function convert24hrTo12hr(h, m) {
-            let hour = parseInt(h);
-            const period = hour >= 12 ? 'PM' : 'AM';
-            hour = hour % 12;
-            hour = hour === 0 ? 12 : hour;
-            return { hour: formatTimeComponent(hour), minute: formatTimeComponent(m), period: period };
-        }
-        function timeStringToMinutes(time24hr) {
-            const [h, m] = time24hr.split(':').map(Number);
-            return h * 60 + m;
-        }
-        function minutesToTimeString24hr(minutes) {
-            const h = Math.floor(minutes / 60) % 24;
-            const m = minutes % 60;
-            return `${formatTimeComponent(h)}:${formatTimeComponent(m)}:00`;
-        }
-        function timeString24hrToSeconds(time24hr) {
-            const [h, m, s] = time24hr.split(':').map(Number);
-            return h * 3600 + m * 60 + s;
-        }
-        function secondsToTimeString(totalSeconds) {
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-            return `${formatTimeComponent(hours)}:${formatTimeComponent(minutes)}:${formatTimeComponent(seconds)}`;
-        }
-        function timeString24hrToPointObject(time24hr) {
-            const [h, m] = time24hr.split(':');
-            const { hour, minute, period } = convert24hrTo12hr(h, m);
-            return {
-                currentHour: hour,
-                currentMinute: minute,
-                currentPeriod: period,
-                original24hr: time24hr,
-                isBreak: false, // Default
-                override: { main: null, sub: null, ot: null } // Task override
-            };
-        }
-
-        // --- TSC HELPER INITIALIZATION & SETTINGS ---
-
-        function initializeSettings(clearAll = false) {
-            if (clearAll) {
-                localStorage.removeItem(LOCAL_STORAGE_KEY);
-                localStorage.removeItem(SCHEDULE_TEMPLATES_KEY);
-            }
-            const savedSettings = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
-            const defaultSettings = {
-                techNumber: '00000',
-                username: 'User Name',
-                shift: 'Day',
-                date: new Date().toISOString().split('T')[0],
-                ot: 'NO',
-                categoryPair1: { main: 'ACCUPLUS', sub: 'PCS' },
-                timePoints: getDefaultTimePoints()
-            };
-            currentSettings = savedSettings || defaultSettings;
-            if (!currentSettings.timePoints) currentSettings.timePoints = defaultSettings.timePoints;
-            if (!currentSettings.categoryPair1) currentSettings.categoryPair1 = defaultSettings.categoryPair1;
-            
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentSettings));
-        }
-
-        function getDefaultTimePoints() {
-            // Default 9-hour shift points
-            return [
-                timeString24hrToPointObject('09:00'), // Start
-                timeString24hrToPointObject('10:30'), // Break 1 Start
-                timeString24hrToPointObject('11:45'), // Lunch Start
-                timeString24hrToPointObject('12:45'), // Lunch End
-                timeString24hrToPointObject('14:30'), // Break 2 Start
-                timeString24hrToPointObject('18:00')  // End
-            ];
-        }
-
-        function randomize() {
-            randomizedTimes = [];
-            currentSettings.timePoints.forEach((point, i) => {
-                const hour24 = convert12hrTo24hr(point.currentHour, point.currentPeriod);
-                const minute = parseInt(point.currentMinute);
-                const randomSec = formatTimeComponent(Math.floor(Math.random() * 60));
-                
-                randomizedTimes.push(`${formatTimeComponent(hour24)}:${formatTimeComponent(minute)}:${randomSec}`);
-            });
-            randomizeTimesAndRecalculate();
-        }
-
-        function getDatesForTimePoints(timePoints, startDateString) {
-            const startDate = new Date(startDateString + 'T00:00:00'); // Use T00:00:00 to avoid timezone issues
-            const dates = [];
-            
-            // Assume the first date is always the start date
-            dates.push(startDateString);
-            
-            for (let i = 1; i < timePoints.length; i++) {
-                const prevPoint = timePoints[i-1];
-                const currPoint = timePoints[i];
-
-                let prevMins = convert12hrTo24hr(prevPoint.currentHour, prevPoint.currentPeriod) * 60 + parseInt(prevPoint.currentMinute);
-                let currMins = convert12hrTo24hr(currPoint.currentHour, currPoint.currentPeriod) * 60 + parseInt(currPoint.currentMinute);
-
-                // If the current time is numerically less than the previous time, it means the next day
-                if (currMins <= prevMins) {
-                    // Check if the date needs to be incremented
-                    const nextDate = new Date(startDate.getTime());
-                    nextDate.setDate(startDate.getDate() + 1);
-                    dates.push(nextDate.toISOString().split('T')[0]);
-                    startDate.setDate(startDate.getDate() + 1); // Increment the base date for subsequent checks
-                } else {
-                    // Otherwise, keep the current date
-                    dates.push(startDate.toISOString().split('T')[0]);
-                }
-            }
-            return dates.slice(0, randomizedTimes.length);
-        }
-
-        function randomizeTimesAndRecalculate() {
-            if (randomizedTimes.length < 2) return;
-
-            // Sort randomized times chronologically, handling midnight wrap
-            randomizedTimes.sort((a, b) => timeString24hrToSeconds(a) - timeString24hrToSeconds(b));
-
-            const newTableData = [];
-            const datesForTimePoints = getDatesForTimePoints(currentSettings.timePoints, currentSettings.date);
-            
-            for (let i = 0; i < randomizedTimes.length - 1; i++) {
-                const startPoint = currentSettings.timePoints[i];
-                const nextPoint = currentSettings.timePoints[i + 1];
-
-                let assignedCategory;
-                let assignedOT;
-
-                // Check for manual task override
-                if (startPoint.override.main) {
-                    assignedCategory = { main: startPoint.override.main, sub: startPoint.override.sub };
-                    assignedOT = startPoint.override.ot;
-                } else {
-                    let startMins = convert12hrTo24hr(startPoint.currentHour, startPoint.currentPeriod) * 60 + parseInt(startPoint.currentMinute);
-                    let endMins = convert12hrTo24hr(nextPoint.currentHour, nextPoint.currentPeriod) * 60 + parseInt(nextPoint.currentMinute);
-
-                    // Handle time wrap (e.g., 23:00 -> 01:00)
-                    if (endMins < startMins) {
-                        endMins += 24 * 60;
-                    }
-                    const durationMins = endMins - startMins;
-                    
-                    // Assign BREAK for 15 min or 60 min segments (standard breaks/lunch)
-                    if (durationMins === 15 || durationMins === 60) {
-                        assignedCategory = { main: 'BREAK', sub: 'BREAK' };
-                        assignedOT = 'NO';
-                    } else {
-                        assignedCategory = currentSettings.categoryPair1;
-                        assignedOT = currentSettings.ot;
-                    }
-                }
-
-                const startTime24Hr = randomizedTimes[i];
-                const endTime24Hr = randomizedTimes[i + 1];
-                let startTotalSecs = timeString24hrToSeconds(startTime24Hr);
-                let endTotalSecs = timeString24hrToSeconds(endTime24Hr);
-
-                // Handle total seconds wrap
-                if (endTotalSecs < startTotalSecs) endTotalSecs += 24 * 3600; 
-                
-                const durationSecs = endTotalSecs - startTotalSecs;
-                
-                const [startH, startM, startS] = startTime24Hr.split(':').map(formatTimeComponent);
-                const start12hr = convert24hrTo12hr(startH, startM);
-                
-                const [endH, endM, endS] = endTime24Hr.split(':').map(formatTimeComponent);
-                const end12hr = convert24hrTo12hr(endH, endM);
-                
-                newTableData.push({
-                    ...currentSettings,
-                    date: datesForTimePoints[i],
-                    start: `${start12hr.hour}:${start12hr.minute}:${startS} ${start12hr.period}`,
-                    end: `${end12hr.hour}:${end12hr.minute}:${endS} ${end12hr.period}`,
-                    startTime24: startTime24Hr,
-                    endTime24: endTime24Hr,
-                    duration: secondsToTimeString(durationSecs),
-                    mainCategory: assignedCategory.main,
-                    subCategory: assignedCategory.sub,
-                    ot: assignedOT
-                });
-            }
-
-            currentDisplayedData = newTableData.reverse(); // Displaying chronologically (oldest at top)
-            updateDisplay();
-            checkTotalWorkHours();
-        }
-
-        function checkTotalWorkHours() {
-            let totalWorkSeconds = 0;
-            let totalBreaksSeconds = 0;
-            let totalOTSeconds = 0;
-
-            currentDisplayedData.forEach(entry => {
-                let startTotalSecs = timeString24hrToSeconds(entry.startTime24);
-                let endTotalSecs = timeString24hrToSeconds(entry.endTime24);
-                
-                if (endTotalSecs < startTotalSecs) endTotalSecs += 24 * 3600;
-                
-                const durationSecs = endTotalSecs - startTotalSecs;
-
-                if (entry.mainCategory !== 'BREAK') {
-                    totalWorkSeconds += durationSecs;
-                    if (entry.ot === 'YES') {
-                        totalOTSeconds += durationSecs;
-                    }
-                } else {
-                    totalBreaksSeconds += durationSecs;
-                }
-            });
-
-            const totalHours = totalWorkSeconds / 3600;
-            
-            // Check for over-duration warning (e.g., > 7.5 hours for a regular 8-hour shift - 27000s)
-            if (totalWorkSeconds > DURATION_LIMIT_SECONDS) {
-                 durationWarning.textContent = `Warning: Total work time exceeds 7.5 hours (Current: ${totalHours.toFixed(2)} hours). Please check your time points.`;
-                 durationWarning.classList.remove('hidden');
+        const toggleTheme = () => {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.theme = 'light';
             } else {
-                 durationWarning.classList.add('hidden');
+                html.classList.add('dark');
+                localStorage.theme = 'dark';
             }
-        }
+            lucide.createIcons();
+        };
 
-        function updateSubCategoryDropdown(mainSelect, subSelect, selectedSub = null) {
-            const mainCat = mainSelect.value;
-            const subs = categoryData[mainCat] || [];
-            subSelect.innerHTML = subs.map(sub => 
-                `<option value="${sub}" ${sub === selectedSub ? 'selected' : ''}>${sub}</option>`
-            ).join('');
-        }
-
-        function createCell(content) {
-            const cell = document.createElement('td');
-            cell.textContent = content;
-            return cell;
-        }
-
-        function updateDisplay() {
-            timeTableBody.innerHTML = '';
-            
-            if (currentDisplayedData.length === 0) {
-                timeTableBody.innerHTML = '<tr><td colspan="11" class="text-center text-gray-400 py-6">No data generated. Click Randomize & Recalculate.</td></tr>';
-                return;
-            }
-
-            currentDisplayedData.forEach((entry, index) => {
-                const row = timeTableBody.insertRow();
-                row.appendChild(createCell(entry.techNumber));
-                row.appendChild(createCell(entry.username));
-                row.appendChild(createCell(entry.shift));
-                
-                // Date Cell with Inline Edit Icon
-                const dateCell = document.createElement('td');
-                if (index === 0) {
-                    const container = document.createElement('div');
-                    container.className = 'flex items-center gap-1';
-                    
-                    const dateInput = document.createElement('input');
-                    dateInput.type = 'text'; // Use text for custom class to prevent date picker
-                    dateInput.className = 'editable-date';
-                    dateInput.value = entry.date;
-                    dateInput.title = "Click to edit date";
-                    dateInput.addEventListener('change', (e) => {
-                        const newDate = e.target.value;
-                        if (newDate) {
-                            currentSettings.date = newDate;
-                            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentSettings));
-                            randomizeTimesAndRecalculate(); // Recalculate all dates
-                            showMessageBox('Start Date updated!');
-                        }
-                    });
-                    dateCell.appendChild(dateInput);
-                } else {
-                    dateCell.textContent = entry.date;
-                }
-                row.appendChild(dateCell);
-
-                row.appendChild(createCell(entry.start));
-                row.appendChild(createCell(entry.end));
-                row.appendChild(createCell(entry.duration));
-
-                // Main Category Dropdown
-                const mainCatCell = document.createElement('td'), mainCatSelect = document.createElement('select');
-                mainCatSelect.innerHTML = Object.keys(categoryData).map(k => 
-                    `<option value="${k}" ${k === entry.mainCategory ? 'selected' : ''}>${k}</option>`
-                ).join('');
-                mainCatCell.appendChild(mainCatSelect);
-
-                // Sub Category Dropdown
-                const subCatCell = document.createElement('td'), subCatSelect = document.createElement('select');
-                updateSubCategoryDropdown(mainCatSelect, subCatSelect, entry.subCategory);
-                subCatCell.appendChild(subCatSelect);
-                
-                // OT Dropdown
-                const otCell = document.createElement('td'), otSelect = document.createElement('select');
-                otSelect.innerHTML = `<option value="NO" ${entry.ot === 'NO' ? 'selected' : ''}>NO</option><option value="YES" ${entry.ot === 'YES' ? 'selected' : ''}>YES</option>`;
-                otCell.appendChild(otSelect);
-
-                row.appendChild(mainCatCell);
-                row.appendChild(subCatCell);
-                row.appendChild(otCell);
-
-                // Action Cell (Remove)
-                const actionCell = document.createElement('td');
-                const removeButton = document.createElement('button');
-                removeButton.textContent = 'Remove';
-                removeButton.className = 'button-remove';
-                removeButton.onclick = () => removeEntry(index);
-                actionCell.appendChild(removeButton);
-                row.appendChild(actionCell);
-
-                // Event listeners for category/OT changes
-                mainCatSelect.addEventListener('change', () => {
-                    updateSubCategoryDropdown(mainCatSelect, subCatSelect);
-                    updateEntry(index, mainCatSelect.value, subCatSelect.value, otSelect.value);
-                });
-                subCatSelect.addEventListener('change', () => {
-                    updateEntry(index, mainCatSelect.value, subCatSelect.value, otSelect.value);
-                });
-                otSelect.addEventListener('change', () => {
-                    updateEntry(index, mainCatSelect.value, subCatSelect.value, otSelect.value);
-                });
-            });
-        }
-
-        function updateEntry(index, mainCat, subCat, ot) {
-            // Index needs to be recalculated due to reverse() display
-            const dataIndex = currentDisplayedData.length - 1 - index;
-            if (dataIndex >= 0 && dataIndex < currentDisplayedData.length) {
-                currentDisplayedData[dataIndex].mainCategory = mainCat;
-                currentDisplayedData[dataIndex].subCategory = subCat;
-                currentDisplayedData[dataIndex].ot = ot;
-                checkTotalWorkHours();
-            }
-        }
-
-        function removeEntry(index) {
-            if (confirm("Are you sure you want to remove this segment?")) {
-                currentDisplayedData.splice(index, 1);
-                updateDisplay();
-                checkTotalWorkHours();
-                showMessageBox('Segment removed!');
-            }
-        }
-
-        function openSettingsModal() {
-            document.getElementById('techNumberInput').value = currentSettings.techNumber;
-            document.getElementById('usernameInput').value = currentSettings.username;
-            document.getElementById('shiftInput').value = currentSettings.shift;
-            document.getElementById('dateInput').value = currentSettings.date;
-            document.getElementById('otInput').value = currentSettings.ot;
-            
-            const mainCatSelect = document.getElementById('mainCatSelect');
-            const subCatSelect = document.getElementById('subCatSelect');
-            
-            mainCatSelect.innerHTML = Object.keys(categoryData).filter(k=>k!=="BREAK").map(k => 
-                `<option value="${k}">${k}</option>`
-            ).join('');
-            
-            mainCatSelect.value = currentSettings.categoryPair1.main;
-            updateSubCategoryDropdown(mainCatSelect, subCatSelect, currentSettings.categoryPair1.sub);
-            
-            populateScheduleDropdown();
-            settingsModal.style.display = 'flex';
-        }
-
-        function saveSettings() {
-            currentSettings.techNumber = document.getElementById('techNumberInput').value;
-            currentSettings.username = document.getElementById('usernameInput').value;
-            currentSettings.shift = document.getElementById('shiftInput').value;
-            currentSettings.date = document.getElementById('dateInput').value;
-            currentSettings.ot = document.getElementById('otInput').value;
-            currentSettings.categoryPair1 = { 
-                main: document.getElementById('mainCatSelect').value, 
-                sub: document.getElementById('subCatSelect').value 
-            };
-            
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentSettings));
-            settingsModal.style.display = 'none';
-            run(true);
-            showMessageBox('Settings saved!');
-        }
-
-        // --- TSC HELPER SCHEDULE MANAGEMENT ---
-
-        function getScheduleTemplates() {
-            return JSON.parse(localStorage.getItem(SCHEDULE_TEMPLATES_KEY)) || [];
-        }
-
-        function saveScheduleTemplates(templates) {
-            localStorage.setItem(SCHEDULE_TEMPLATES_KEY, JSON.stringify(templates));
-        }
-
-        function populateScheduleDropdown() {
-            const templates = getScheduleTemplates();
-            selectScheduleDropdown.innerHTML = '<option value="-1">Select to apply...</option>';
-            
-            templates.forEach((template, index) => {
-                const option = document.createElement('option');
-                option.value = index;
-                option.textContent = template.name;
-                selectScheduleDropdown.appendChild(option);
-            });
-        }
-        
-        function deleteSelectedSchedule() {
-            const selectedValue = selectScheduleDropdown.value;
-            if (selectedValue === "-1") {
-                showMessageBox('Select a schedule to delete.', true);
-                return;
-            }
-            
-            if (confirm("Are you sure you want to delete this schedule template?")) {
-                let templates = getScheduleTemplates();
-                templates.splice(parseInt(selectedValue), 1);
-                saveScheduleTemplates(templates);
-                populateScheduleDropdown();
-                showMessageBox('Schedule template deleted!');
-            }
-        }
-
-        function generateTimePointsFromSchedule(scheduleTimes, onError) {
-            const calculatedPoints = [
-                scheduleTimes.timeIn,
-                scheduleTimes.break1,
-                // Add break 1 end (15 min after start)
-                minutesToTimeString24hr(timeStringToMinutes(scheduleTimes.break1) + 15),
-                scheduleTimes.lunch,
-                // Add lunch end (60 min after start)
-                minutesToTimeString24hr(timeStringToMinutes(scheduleTimes.lunch) + 60),
-                scheduleTimes.break2,
-                // Add break 2 end (15 min after start)
-                minutesToTimeString24hr(timeStringToMinutes(scheduleTimes.break2) + 15),
-                scheduleTimes.timeOut
-            ].filter(t => t); // Remove any null/empty times
-            
-            // Check chronological order (handles wrap around midnight for short periods)
-            const pointsInMins = calculatedPoints.map(t => timeStringToMinutes(t));
-            for (let i = 1; i < pointsInMins.length; i++) {
-                // If current point is before previous point, and the gap is less than 12 hours (720 min), it's an error.
-                if (pointsInMins[i] < pointsInMins[i-1] && (pointsInMins[i-1] - pointsInMins[i] < 720)) {
-                    onError('Error: Times must be in chronological order.');
-                    return null;
-                }
-            }
-            
-            return calculatedPoints.map(t => timeString24hrToPointObject(t));
-        }
-
-        function handleApplySchedule() {
-            scheduleErrorMessage.textContent = '';
-            const scheduleTimes = {
-                timeIn: document.getElementById('schedTimeIn').value,
-                break1: document.getElementById('schedBreak1').value,
-                lunch: document.getElementById('schedLunch').value,
-                break2: document.getElementById('schedBreak2').value,
-                timeOut: document.getElementById('schedTimeOut').value
-            };
-
-            const newTimePoints = generateTimePointsFromSchedule(scheduleTimes, (msg) => scheduleErrorMessage.textContent = msg);
-            
-            if (newTimePoints) {
-                currentSettings.timePoints = newTimePoints;
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentSettings));
-                scheduleModal.style.display = 'none';
-                settingsModal.style.display = 'none';
-                run(true);
-                showMessageBox('New schedule has been applied!');
-            }
-        }
-
-        function saveScheduleTemplate() {
-            scheduleErrorMessage.textContent = '';
-            const templateName = document.getElementById('scheduleTemplateNameInput').value.trim();
-            if (!templateName) {
-                scheduleErrorMessage.textContent = 'Please enter a name for the schedule template.';
-                return;
-            }
-
-            const scheduleTimes = {
-                timeIn: document.getElementById('schedTimeIn').value,
-                break1: document.getElementById('schedBreak1').value,
-                lunch: document.getElementById('schedLunch').value,
-                break2: document.getElementById('schedBreak2').value,
-                timeOut: document.getElementById('schedTimeOut').value
-            };
-            
-            const timePoints = generateTimePointsFromSchedule(scheduleTimes, (msg) => scheduleErrorMessage.textContent = msg);
-            
-            if (timePoints) {
-                let templates = getScheduleTemplates();
-                templates.push({ name: templateName, timePoints: timePoints });
-                saveScheduleTemplates(templates);
-                scheduleModal.style.display = 'none';
-                populateScheduleDropdown();
-                showMessageBox(`Schedule template '${templateName}' saved!`);
-            }
-        }
-        
-        // --- TSC HELPER TASK INSERTION ---
-
-        function openInsertTaskModal() {
-            const taskSegmentSelect = document.getElementById('taskSegmentSelect');
-            taskSegmentSelect.innerHTML = '';
-            
-            let hasNonBreak = false;
-            currentDisplayedData.forEach((entry, i) => {
-                if (entry.mainCategory !== 'BREAK') {
-                    const option = document.createElement('option');
-                    // Displaying chronologically, so index 0 is oldest (top row)
-                    option.value = currentDisplayedData.length - 1 - i; // Gets the index in the original timePoints array
-                    option.textContent = `[${entry.date}] ${entry.start} -> ${entry.end} (${entry.mainCategory})`;
-                    taskSegmentSelect.appendChild(option);
-                    hasNonBreak = true;
-                }
-            });
-
-            if (!hasNonBreak) {
-                showMessageBox("No non-break segments available to insert a task into.", true);
-                return;
-            }
-            
-            // Clear inputs
-            document.getElementById('taskStartInput').value = '';
-            document.getElementById('taskEndInput').value = '';
-            document.getElementById('taskErrorMessage').textContent = '';
-
-            const taskMainCatSelect = document.getElementById('taskMainCatSelect');
-            const taskSubCatSelect = document.getElementById('taskSubCatSelect');
-            
-            // Populate category dropdowns, excluding BREAK
-            taskMainCatSelect.innerHTML = Object.keys(categoryData).filter(k=>k!=="BREAK").map(k => 
-                `<option value="${k}">${k}</option>`
-            ).join('');
-            
-            // Default to the current global category
-            taskMainCatSelect.value = currentSettings.categoryPair1.main;
-            updateSubCategoryDropdown(taskMainCatSelect, taskSubCatSelect, currentSettings.categoryPair1.sub);
-            
-            document.getElementById('taskOtInput').value = currentSettings.ot;
-
-            insertTaskModal.style.display = 'flex';
-        }
-
-        function handleApplyTask() {
-            taskErrorMessage.textContent = '';
-            const segmentIndex = parseInt(document.getElementById('taskSegmentSelect').value);
-            const taskStart12hr = document.getElementById('taskStartInput').value.trim();
-            const taskEnd12hr = document.getElementById('taskEndInput').value.trim();
-            const taskMainCat = document.getElementById('taskMainCatSelect').value;
-            const taskSubCat = document.getElementById('taskSubCatSelect').value;
-            const taskOt = document.getElementById('taskOtInput').value;
-            
-            if (!taskStart12hr || !taskEnd12hr) {
-                taskErrorMessage.textContent = 'Task start and end times are required.';
-                return;
-            }
-            
-            // Convert to 24hr for validation
-            const parse12hr = (timeStr) => {
-                const match = timeStr.match(/(\d{1,2}):(\d{2}):(\d{2})\s*(AM|PM)/i);
-                if (!match) return null;
-                const [, h, m, s, p] = match;
-                let hour24 = convert12hrTo24hr(h, p.toUpperCase());
-                return `${formatTimeComponent(hour24)}:${formatTimeComponent(m)}:${formatTimeComponent(s)}`;
-            };
-
-            const taskStart24hr = parse12hr(taskStart12hr);
-            const taskEnd24hr = parse12hr(taskEnd12hr);
-
-            if (!taskStart24hr || !taskEnd24hr) {
-                taskErrorMessage.textContent = 'Invalid time format. Use HH:MM:SS AM/PM.';
-                return;
-            }
-
-            const startSecs = timeString24hrToSeconds(taskStart24hr);
-            const endSecs = timeString24hrToSeconds(taskEnd24hr);
-            
-            if (endSecs <= startSecs) {
-                taskErrorMessage.textContent = 'Task End Time must be after Task Start Time.';
-                return;
-            }
-
-            const segmentEntry = currentDisplayedData[currentDisplayedData.length - 1 - segmentIndex]; // Get the currently displayed row
-            const segmentStartSecs = timeString24hrToSeconds(segmentEntry.startTime24);
-            let segmentEndSecs = timeString24hrToSeconds(segmentEntry.endTime24);
-            if (segmentEndSecs < segmentStartSecs) segmentEndSecs += 24 * 3600;
-
-            if (startSecs < segmentStartSecs || endSecs > segmentEndSecs) {
-                taskErrorMessage.textContent = 'Task must be fully contained within the selected segment.';
-                return;
-            }
-
-            // --- Apply Logic ---
-            const newTimePoints = [...currentSettings.timePoints];
-            const originalPoint = newTimePoints[segmentIndex];
-            const nextPoint = newTimePoints[segmentIndex + 1];
-
-            // 1. Convert task times to point objects
-            const [taskStartH, taskStartM] = taskStart24hr.split(':');
-            const [taskEndH, taskEndM] = taskEnd24hr.split(':');
-            
-            const taskStartPoint = timeString24hrToPointObject(`${taskStartH}:${taskStartM}`);
-            const taskEndPoint = timeString24hrToPointObject(`${taskEndH}:${taskEndM}`);
-            taskStartPoint.isBreak = true;
-            taskEndPoint.isBreak = true;
-            taskStartPoint.override = { main: taskMainCat, sub: taskSubCat, ot: taskOt };
-            
-            // 2. Insert/Replace time points
-            let insertionPoints = [];
-            let spliceCount = 2; // Default: replace the original two points
-
-            // Check if taskStart is a new point or replaces the original segment start
-            if (timeStringToMinutes(taskStart24hr) > timeStringToMinutes(originalPoint.original24hr)) {
-                insertionPoints.push(originalPoint); // Keep original start
-                spliceCount = 1;
-            } else {
-                spliceCount = 0;
-            }
-            insertionPoints.push(taskStartPoint);
-            insertionPoints.push(taskEndPoint);
-            
-            // Check if taskEnd is a new point or replaces the original segment end (nextPoint)
-            if (timeStringToMinutes(taskEnd24hr) < timeStringToMinutes(nextPoint.original24hr)) {
-                 insertionPoints.push(nextPoint); // Keep original end
-            } 
-            
-            // Remove the old points and insert the new ones
-            newTimePoints.splice(segmentIndex, spliceCount, ...insertionPoints.filter(p => p));
-            
-            currentSettings.timePoints = newTimePoints;
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentSettings));
-
-            insertTaskModal.style.display = 'none';
-            run(true);
-            showMessageBox('Task inserted and schedule recalculated!');
-        }
+        darkModeToggle.addEventListener('click', toggleTheme);
+        darkModeToggleMobile.addEventListener('click', toggleTheme);
 
 
-        // --- MAIN ENTRY POINT ---
-        function run(reinitialize = false) {
-            if (reinitialize) {
-                 initializeSettings();
-            }
-            randomize();
-        }
-
-
-        // --- EVENT LISTENERS ---
-        randomizeButton.addEventListener('click', randomize);
-        insertTaskButton.addEventListener('click', openInsertTaskModal);
-        copyButton.addEventListener('click', () => {
-            const table = document.querySelector('.time-table');
-            const range = document.createRange();
-            range.selectNode(table);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
-            try {
-                document.execCommand('copy');
-                showMessageBox('Table copied to clipboard!');
-            } catch (err) {
-                showMessageBox('Could not copy table.', true);
-            }
-            window.getSelection().removeAllRanges();
-        });
-        settingsButton.addEventListener('click', openSettingsModal);
-        clearDataButton.addEventListener('click', () => {
-            if (confirm("Are you sure you want to clear all data? This action cannot be undone and will remove all saved settings and schedule templates.")) {
-                initializeSettings(true);
-                run(true);
-                showMessageBox("All data has been cleared.");
-            }
-        });
-
-        saveSettingsButton.addEventListener('click', saveSettings);
-        cancelSettingsButton.addEventListener('click', () => settingsModal.style.display = 'none');
-        closeSettingsModalButton.addEventListener('click', () => settingsModal.style.display = 'none');
-        resetSettingsButton.addEventListener('click', () => {
-            if (confirm("Are you sure you want to clear all data? This action cannot be undone and will remove all saved settings and schedule templates.")) {
-                initializeSettings(true);
-                settingsModal.style.display = 'none';
-                run(true);
-                showMessageBox("All data has been cleared.");
-            }
-        });
-
-        selectScheduleDropdown.addEventListener('change', (e) => {
-            const selectedValue = e.target.value;
-            if (selectedValue !== "-1") {
-                const templates = getScheduleTemplates();
-                const template = templates[parseInt(selectedValue)];
-                if (template) {
-                    currentSettings.timePoints = template.timePoints;
-                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentSettings));
-                    settingsModal.style.display = 'none';
-                    run(true);
-                    showMessageBox(`Schedule '${template.name}' applied!`);
-                }
-            }
-            selectScheduleDropdown.value = "-1";
-        });
-        deleteScheduleButton.addEventListener('click', deleteSelectedSchedule);
-
-        generateScheduleButton.addEventListener('click', () => { 
-            scheduleErrorMessage.textContent = ''; document.getElementById('scheduleTemplateNameInput').value = '';
-            // Clear time inputs for a fresh start
-            document.getElementById('schedTimeIn').value = ''; 
-            document.getElementById('schedBreak1').value = '';
-            document.getElementById('schedLunch').value = '';
-            document.getElementById('schedBreak2').value = '';
-            document.getElementById('schedTimeOut').value = '';
-            scheduleModal.style.display = 'flex'; 
-        });
-        applyScheduleButton.addEventListener('click', handleApplySchedule);
-        cancelScheduleButton.addEventListener('click', () => scheduleModal.style.display = 'none');
-        saveScheduleTemplateButton.addEventListener('click', saveScheduleTemplate);
-        
-        document.getElementById('taskMainCatSelect').addEventListener('change', () => updateSubCategoryDropdown(document.getElementById('taskMainCatSelect'), document.getElementById('taskSubCatSelect')));
-        applyTaskButton.addEventListener('click', handleApplyTask);
-        cancelTaskButton.addEventListener('click', () => insertTaskModal.style.display = 'none');
-        closeTaskModalButton.addEventListener('click', () => insertTaskModal.style.display = 'none');
-
-        // Scroll-to-Top button logic
         window.onscroll = function() {
             if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
                 scrollToTopBtn.classList.add('opacity-100', 'pointer-events-auto');
@@ -2220,15 +1047,40 @@
         };
         scrollToTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
+        function formatRelativeTime(ts) {
+            if (!ts || !ts.seconds) return 'Just now';
+            const seconds = Math.floor((new Date() - (ts.seconds * 1000)) / 1000);
+            if (seconds < 60) return `${seconds}s ago`;
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            const days = Math.floor(hours / 24);
+            if (days < 30) return `${days}d ago`;
+            return new Date(ts.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+        
+        function handleError(msg) {
+            errorMessage.textContent = msg;
+            errorContainer.classList.remove('hidden');
+            setTimeout(() => errorContainer.classList.add('hidden'), 5000);
+        }
+        
+        function handleSuccess(msg) {
+            successMessage.textContent = msg;
+            successContainer.classList.remove('hidden');
+            setTimeout(() => successContainer.classList.add('hidden'), 5000);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return text;
+            return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
         
         // Final initialization calls
         calculateDecimalTime(); 
         calculatePercentage();
         lucide.createIcons();
-
-        // TSC Helper initialization
-        initializeSettings(); 
-        run(true);
     </script>
 </body>
 </html>
