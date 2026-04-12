@@ -1,0 +1,7 @@
+{
+  "users": [
+    {"auth":"7236LE","hwid":"HWID1","enabled":true},
+    {"auth":"7231NR","hwid":"HWID2","enabled":true},
+    {"auth":"7244AA","hwid":"HWID3","enabled":false}
+  ]
+}
