@@ -3,14 +3,12 @@
     {
       "auth": "YOUR-AUTH-CODE-HERE",
       "hwid": "PASTE-USER-HWID-HERE",
-      "enabled": true,
-      "key": "pvW8Vt38cVDOge28CHLhp06zj0iXnZ-_kqBTjPB4u7Q="
+      "enabled": true
     },
     {
       "auth": "SECOND-USER-AUTH-CODE",
       "hwid": "SECOND-USER-HWID",
-      "enabled": true,
-      "key": "pvW8Vt38cVDOge28CHLhp06zj0iXnZ-_kqBTjPB4u7Q="
+      "enabled": true
     }
   ]
 }
