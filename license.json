@@ -10,5 +10,6 @@
       "hwid": "SECOND-USER-HWID",
       "enabled": true
     }
-  ]
+  ],
+  "sig": "35b469cfdaeb668afc3f2a7ac09677577b35c14ea810b83ae88da42d018b4bc4"
 }
