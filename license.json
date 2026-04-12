@@ -1,7 +1,10 @@
 {
   "users": [
-    {"auth":"7236LE","hwid":"HWID1","enabled":true},
-    {"auth":"7231NR","hwid":"HWID2","enabled":true},
-    {"auth":"7244AA","hwid":"HWID3","enabled":false}
+    {
+      "auth": "YOUR-AUTH-CODE-HERE",
+      "hwid": "PASTE-USER-HWID-HERE",
+      "enabled": true,
+      "key": "pvW8Vt38cVDOge28CHLhp06zj0iXnZ-_kqBTjPB4u7Q="
+    }
   ]
 }
