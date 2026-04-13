@@ -6,8 +6,13 @@
       "enabled": true
     },
     {
-      "auth": "SECOND-USER-AUTH-CODE",
-      "hwid": "SECOND-USER-HWID",
+      "auth": "7244AA",
+      "hwid": "C69D51C5FD3C7C7E17CA0D58C071BB66",
+      "enabled": true
+    },
+    {
+      "auth": "7231NR",
+      "hwid": "B269136924D2D393976BC619038CA077",
       "enabled": true
     }
   ]
