@@ -14,6 +14,11 @@
       "auth": "7231NR",
       "hwid": "B269136924D2D393976BC619038CA077",
       "enabled": true
+    },
+    {
+      "auth": "7314VP",
+      "hwid": "DE7409E2FF41056F7A8ECA6A77C3D9A4",
+      "enabled": true
     }
   ]
 }
